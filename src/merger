@@ -1,0 +1,12 @@
+#!/bin/sh
+
+DEPS=(
+	main.cpp
+)
+
+output="CGSolver"
+cat "${DEPS[@]}" > $output.cpp
+sed -i -e '/HPP/d' -e '/include "/d' $output.cpp
+make $output
+rm $output
+clipcp $output.cpp
