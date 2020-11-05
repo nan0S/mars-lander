@@ -1,9 +1,11 @@
 TARGET = main
 EXENAME = mars-lander
-OBJS = main.o
+OBJS = main.o \
+	Map.o \
+	Common.o
 
 CC = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -Wreorder -O3 -Ofast
+CXXFLAGS = -std=c++17 -DLOCAL -Ofast -O3 -flto -march=native -s -Wall -Wextra -Wreorder
 DFLAGS = -fsanitize=address -fsanitize=undefined
 RFLAGS = -DNDEBUG
 
@@ -19,9 +21,6 @@ debug: $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(CC) $(CXXFLAGS) -o $(EXENAME) $^
-
-main.o: main.cpp
-	$(CC) $(CXXFLAGS) -DLOCAL -c -o $@ $<
 
 %.o: %.cpp %.hpp
 	$(CC) $(CXXFLAGS) -c -o $@ $<
