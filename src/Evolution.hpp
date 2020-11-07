@@ -43,6 +43,12 @@ private:
 	static Action chooseAction();
 	static void makeStep();
 
+	static void printGenerationStats(int generation);
+
+	#ifdef VISUAL
+	static void recordGeneration();
+	#endif
+
 	static Population population1;
 	static Population population2;
 
@@ -56,6 +62,9 @@ private:
 
 	static int elite;
 	static float mutationProb;
+	static int random;
+
+	static int mutations;
 };
 
 typedef RHEA Evolution;

@@ -8,6 +8,7 @@ namespace Options {
 	extern bool verbose;
 	extern float eliteFactor;
 	extern float mutationProb;
+	extern float randomnessFactor;
 
 	void configure(int argc, char* argv[]);
 	void show();

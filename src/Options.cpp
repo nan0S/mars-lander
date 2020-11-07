@@ -11,6 +11,8 @@ float Options::evolutionTimeLimit = 40;
 
 float Options::eliteFactor = 0.2f;
 float Options::mutationProb = 0.01f;
+float Options::randomnessFactor = 0.1f;
+
 bool Options::verbose = false;
 
 void Options::configure(int argc, char* argv[]) {
@@ -26,6 +28,7 @@ void Options::configure(int argc, char* argv[]) {
 		"\t-t, --tle\tspecify evolution time limit\n"
 		"\t-x, --mutation\tspecify mutation probability\n"
 		"\t-e, --elite\tspecify elitism factor\n"
+		"\t-r, --randomness\t specify randomness factor\n"
 		"\t-v, --verbose\tprint verbosely\n"
 		"\t-h, --help\tprint this help\n\n";
 
@@ -34,12 +37,13 @@ void Options::configure(int argc, char* argv[]) {
 		{ "tle", required_argument, 0, 't' },
 		{ "mutation", required_argument, 0, 'x' },
 		{ "elite", required_argument, 0, 'e' },
+		{ "randomness", required_argument, 0, 'r' },
 		{ "verbose", no_argument, 0, 'v' },
 		{ "help", no_argument, 0, 'h' },
 	};
 
 	int idx, opt;
-	while ((opt = getopt_long(argc, argv, "m:t:x:e:vh", longopts, &idx)) != -1)
+	while ((opt = getopt_long(argc, argv, "m:t:x:e:r:vh", longopts, &idx)) != -1)
 		switch (opt) {
 			case 'm':
 				mapNumber = std::stoi(optarg);
@@ -52,6 +56,9 @@ void Options::configure(int argc, char* argv[]) {
 				break;
 			case 'e':
 				eliteFactor = std::stof(optarg);
+				break;
+			case 'r':
+				randomnessFactor = std::stof(optarg);
 				break;
 			case 'v':
 				verbose = true;
@@ -70,7 +77,9 @@ void Options::show() {
 	std::cout << "mapNumber = " << mapNumber << "\n";
 	std::cout << "evolutionTimeLimit = " << evolutionTimeLimit << "\n";
 	std::cout << "eliteFactor = " << eliteFactor << "\n";
-	std::cout << "mutationProb = " << mutationProb;
+	std::cout << "mutationProb = " << mutationProb << "\n";
+	std::cout << "randomnessFactor = " << randomnessFactor;
+	std::cout << std::endl;
 
 	getchar();
 }

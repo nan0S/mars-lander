@@ -4,7 +4,7 @@
 #include <random>
 #include <cassert>
 
-std::mt19937 Random::gen{std::random_device{}()};
+std::mt19937 Random::rng{std::random_device{}()};
 
 void errorExit(const std::string& msg) {
 	std::cerr << "ERROR: " << msg << '\n';

@@ -113,7 +113,7 @@ inline float cos(int x) {
 }
 
 namespace Random {
-	extern std::mt19937 gen;
+	extern std::mt19937 rng;
 
 	template<typename T>
 	using dist_t = std::conditional_t<
@@ -123,15 +123,26 @@ namespace Random {
 	>;
 
 	template<typename T>
+	using T_Int = std::enable_if_t<
+		std::is_integral_v<T>, T>;
+
+	template<typename T>
+	using NT_Int = std::enable_if_t<
+		!std::is_integral_v<T>, T>;
+
+	template<typename T>
 	T rand(T a, T b) {
-		return dist_t<T>{a, b}(gen);
+		return dist_t<T>{a, b}(rng);
 	}
 
 	template<typename T>
-	T rand(T n) {
-		if (std::is_integral_v<T>)
-			--n;
-		return dist_t<T>{n}(gen);
+	T_Int<T> rand(T n) {
+		return dist_t<T>{0, n-1}(rng);
+	}
+
+	template<typename T>
+	NT_Int<T> rand(T n) {
+		return dist_t<T>{0, n}(rng);
 	}
 }
 

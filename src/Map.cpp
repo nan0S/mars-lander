@@ -135,13 +135,9 @@ std::ostream& operator<<(std::ostream& out, const State& state) {
 }
 
 float Map::evaluate(const Agent& agent) {
-	float dx = agent.pos.x - landRight;
+	float dx = agent.pos.x - (landLeft + landRight) / 2;
 	float dy = agent.pos.y - landGround;
-	dy *= dy;
-	float d1 = dx * dx + dy;
-
-	dx = agent.pos.x - landLeft;
-	float d2 = dx * dx + dy;
-	float d = (std::sqrt(d1) + std::sqrt(d2)) / 2;
+	float d = std::sqrt(dx * dx + dy * dy);
+	assert(d <= 30000);
 	return 30000 - d;
 }

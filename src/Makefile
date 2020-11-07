@@ -6,7 +6,7 @@ OBJS = Map.o \
 	Evolution.o \
 	Options.o
 
-POPULATION_LENGTH = 100
+POPULATION_LENGTH = 50
 CHROMOSOME_LENGTH = 50
 
 CXX = g++
@@ -21,9 +21,19 @@ all: $(TARGETS)
 
 install: $(TARGETS) clean
 
-reconf: remove $(TARGETS)
-remove:
-	rm Evolution.o
+visual: CXXFLAGS += -DVISUAL
+visual: remove-visual
+visual: $(TARGETS)
+
+novisual: remove-visual
+novisual: $(TARGETS)
+
+remove-visual:
+	rm -f Evolution.o simulator.o main.o
+
+reconf: remove-reconf $(TARGETS)
+remove-reconf:
+	rm -f Evolution.o
 
 release: CXXFLAGS += $(RFLAGS)
 release: $(TARGETS)

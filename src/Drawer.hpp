@@ -12,10 +12,11 @@ public:
 	static void init(const std::vector<Point>& points);
 	static void draw();
 	static void wait();
-	static void record(const Agent& agent,
-		const sf::Color& color=sf::Color::White);
+	static void record(const Agent& agent);
 	static void seal(const Agent& agent);
-	static void clear();
+
+	static void endGeneration();
+	static void endIteration();
 
 	template<typename T>
 	static sf::Vector2f transform(const std::pair<T, T>& p) {
@@ -24,10 +25,11 @@ public:
 
 private:
 	static std::vector<sf::Vertex> map;
-	static std::vector<sf::Vertex> agents;
-	static std::vector<sf::Vertex> sealed;
 
-	static int step;
+	static std::vector<std::vector<std::vector<sf::Vertex>>> iterations;
+	static std::vector<std::vector<sf::Vertex>> generations;
+	static std::vector<sf::Vertex> generation;
+	static std::vector<sf::Vertex> sealed;
 
 	static sf::RenderWindow window;
 	static constexpr int W = 1280;

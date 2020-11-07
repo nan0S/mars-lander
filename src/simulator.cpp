@@ -1,7 +1,7 @@
 #include "Agent.hpp"
 #include "Map.hpp"
 
-#ifndef NDEBUG
+#ifdef VISUAL
 #include "Drawer.hpp"
 #endif
 
@@ -50,7 +50,7 @@ public:
 		int simulationsDone = 0;
 		Agent agent;
 
-		#ifndef NDEBUG
+		#ifdef VISUAL
 		int cnt = 50;
 		while (cnt--) {
 		#else
@@ -62,7 +62,7 @@ public:
 				Action action = Action::getRandom();
 				agent.apply(action);
 
-				#ifndef NDEBUG				
+				#ifdef VISUAL				
 				Drawer::record(agent);
 				#endif
 
@@ -84,14 +84,14 @@ int main(int argc, char* argv[]) {
 
 	Map::loadMap();
 
-	#ifndef NDEBUG
+	#ifdef VISUAL
 	Drawer::init(Map::points);
 	Drawer::draw();
 	#endif
 
 	Simulator::simulate(timeLimit, simLength);
 
-	#ifndef NDEBUG
+	#ifdef VISUAL
 	Drawer::wait();
 	#endif
 
