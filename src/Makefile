@@ -1,33 +1,48 @@
-TARGET = main
-EXENAME = mars-lander
-OBJS = main.o \
-	Map.o \
-	Common.o
+TARGETS = mars-lander random-simulations
+OBJS = Map.o \
+	Common.o \
+	Agent.o \
+	Drawer.o \
+	Evolution.o \
+	Options.o
 
-CC = g++
+POPULATION_LENGTH = 100
+CHROMOSOME_LENGTH = 50
+
+CXX = g++
 CXXFLAGS = -std=c++17 -DLOCAL -Ofast -O3 -flto -march=native -s -Wall -Wextra -Wreorder
+LIBS = -lsfml-graphics -lsfml-window -lsfml-system
+
 DFLAGS = -fsanitize=address -fsanitize=undefined
 RFLAGS = -DNDEBUG
+OPTS = -DPOPL=$(POPULATION_LENGTH) -DCHL=$(CHROMOSOME_LENGTH)
 
-all: $(TARGET)
+all: $(TARGETS)
 
-install: $(TARGET) clean
+install: $(TARGETS) clean
+
+reconf: remove $(TARGETS)
+remove:
+	rm Evolution.o
 
 release: CXXFLAGS += $(RFLAGS)
-release: $(TARGET)
+release: $(TARGETS)
 
 debug: CXXFLAGS += $(DFLAGS)
-debug: $(TARGET)
+debug: $(TARGETS)
 
-$(TARGET): $(OBJS)
-	$(CC) $(CXXFLAGS) -o $(EXENAME) $^
+mars-lander: $(OBJS) main.o
+	$(CXX) $(OPTS) $(CXXFLAGS) $(LIBS) -o $@ $^
+
+random-simulations: $(OBJS) simulator.o
+	$(CXX) $(OPTS) $(CXXFLAGS) $(LIBS) -o $@ $^
 
 %.o: %.cpp %.hpp
-	$(CC) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(OPTS) $(CXXFLAGS) -c -o $@ $<
 
 clean:
 	rm -rf *.o
 distclean: clean
-	rm -f $(EXENAME)
+	rm -f mars-lander random-simulations
 
 .PHONY: clean
