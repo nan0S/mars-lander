@@ -11,19 +11,18 @@
 Population Evolution::population1;
 Population Evolution::population2;
 Population* Evolution::population;
-Population* Evolution::children;
+Population* Evolution::nextPopulation;
 
 Agent Evolution::currentAgent;
 
 float Evolution::evolutionTimeLimit;
-int Evolution::elite;
-int Evolution::random;
 float Evolution::mutationProb;
 
 int Evolution::mutationCount;
 
-float Evolution::fitness[POPL];
-int Evolution::parentIdx[POPL];
+float Evolution::fitness[POPL + OFFL];
+float Evolution::objective[POPL + OFFL];
+int Evolution::parentIdx[OFFL];
 
 void Evolution::start() {
 	init();
@@ -58,25 +57,23 @@ void Evolution::init() {
 	Map::init(currentAgent);
 
 	evolutionTimeLimit = Options::evolutionTimeLimit;
-	elite = Options::eliteFactor * POPL;
-	random = Options::randomFactor * POPL;
 	mutationProb = Options::mutationProb;
 
 	#ifndef NDEBUG
 	if (Options::verbose)
 		printConfig();
 	#endif
-
-	assert(random + elite <= POPL);
 }
 
 void Evolution::initPopulation() {
 	population = &population1;
-	children = &population2;
+	nextPopulation = &population2;
 
-	for (auto& chromosome : population->chromosomes)
+	for (int i = 0; i < POPL; ++i) {
+		auto& chromosome = population->chromosomes[i];
 		for (auto& gene : chromosome.genes)
 			gene = Gene::getRandom();
+	}
 }
 
 #ifndef NDEBUG
@@ -84,8 +81,6 @@ void Evolution::printConfig() {
 	std::cout << "\nEvolution algorithm configuration:\n";
 	std::cout << "\tAlgorithm: RHEA\n";
 	std::cout << "\tEvolution time limit: " << evolutionTimeLimit << "\n";
-	std::cout << "\tElite count: " << elite << "\n";
-	std::cout << "\tRandom count: " << random << "\n";
 	std::cout << "\tMutation probability: " << mutationProb << std::endl;
 }
 #endif
@@ -95,10 +90,12 @@ void Evolution::evolution() {
 
 	for (int generation = 0; timer.isTimeLeft(); ++generation) {
 		mutationCount = 0;
-		selectParents();
+		selection();
 		crossover();
 		mutation();
-		std::swap(population, children);
+		replacement();
+
+		std::swap(population, nextPopulation);
 
 		#ifndef NDEBUG
 		if (Options::verbose) {
@@ -109,44 +106,23 @@ void Evolution::evolution() {
 	}
 }
 
-void Evolution::selectParents() {
+void Evolution::selection() {
 	evaluatePopulation();
-
-	static int idx[POPL];
-	std::iota(idx, idx + POPL, 0);
-	std::sort(idx, idx + POPL, [](const int& i, const int& j){
-		return fitness[j] < fitness[i];
-	});
-
-	for (int i = 0; i < POPL - 1; ++i)
-		assert(fitness[idx[i]] >= fitness[idx[i + 1]]);
-
-	// elitism
-	for (int i = 0; i < elite; ++i)
-		parentIdx[i] = idx[i];
-
-	// random
-	for (int i = elite; i < elite + random; ++i) {
-		int randIdx = Random::rand(POPL);
-		assert(0 <= randIdx && randIdx < POPL);
-		parentIdx[i] = randIdx;
-	}
 
 	// roulette selection
 	for (int i = 0; i < POPL - 1; ++i)
 		fitness[i + 1] += fitness[i];
 
 	assert(std::fabs(fitness[POPL - 1] - 1) <= 1e-4);
-	fitness[POPL - 1] = 1;
+	fitness[POPL - 1] = 1.f;
 
-	for (int i = elite + random; i < POPL; ++i) {
+	for (int i = 0; i < OFFL; ++i) {
 		float val = Random::rand<float>();
-		assert(0 <= val && val <= 1);
+		assert(0.f <= val && val <= 1.f);
 		parentIdx[i] = selectParent(val);
 	}
 
-	std::shuffle(parentIdx, parentIdx + POPL, Random::rng);
-	for (int i = 0; i < POPL; ++i)
+	for (int i = 0; i < OFFL; ++i)
 		assert(parentIdx[i] < POPL);
 }
 
@@ -162,34 +138,12 @@ void Evolution::evaluatePopulation() {
 				break;
 		}
 
-		sum += (fitness[i] = Map::evaluate(agent));
+		sum += (objective[i] = Map::evaluate(agent));
 	}
 
-	if (sum == 0.f)
-		for (int i = 0; i < POPL; ++i) {
-			Agent agent = currentAgent;
-			const auto& chromosome = population->chromosomes[i];
-
-			for (const auto& action : chromosome.genes) {
-				agent.apply(action);
-				if (!Map::isFlying(agent))
-					break;
-			}
-
-			std::cout << Map::getShipState(agent) << "\n";
-		}
 	assert(sum != 0.f);
-
 	for (int i = 0; i < POPL; ++i)
-		fitness[i] /= sum;
-
-	// float sum2 = 0.f;
-	// for (int i = 0; i < POPL; ++i) {
-	// 	fitness[i] = 1.f - fitness[i] / sum;
-	// 	sum2 += fitness[i];
-	// }
-	// for (int i = 0; i < POPL; ++i)
-	// 	fitness[i] /= sum2;
+		fitness[i] = objective[i] / sum;
 }
 
 int Evolution::selectParent(float x) {
@@ -200,11 +154,13 @@ int Evolution::selectParent(float x) {
 }
 
 void Evolution::crossover() {
-	for (int i = 0; i < POPL; i += 2) {
+	for (int i = 0; i < OFFL; i += 2) {
 		int& i1 = parentIdx[i];
 		int& i2 = parentIdx[i + 1];
+		assert(0 <= i1 && i1 < POPL);
+		assert(0 <= i2 && i2 < POPL);
 		cross(population->chromosomes[i1], population->chromosomes[i2],
-			children->chromosomes[i], children->chromosomes[i + 1]);
+			population->chromosomes[POPL + i], population->chromosomes[POPL + i + 1]);
 	}
 }
 
@@ -236,15 +192,50 @@ void Evolution::cross(const Chromosome& p1, const Chromosome& p2,
 }
 
 void Evolution::mutation() {
-	for (auto& chromosome : children->chromosomes)
+	for (int i = POPL; i < POPL + OFFL; ++i) {
+		auto& chromosome = population->chromosomes[i];
 		if (Random::rand<float>() <= mutationProb)
 			mutate(chromosome);
+	}
 }
 
 void Evolution::mutate(Chromosome& c) {
 	++mutationCount;
 	for (int i = 0; i < CHL; ++i)
 		c.genes[i] = Gene::getRandom();
+}
+
+void Evolution::replacement() {
+	evaluateChildren();
+
+	static int idx[POPL + OFFL];
+	std::iota(idx, idx + POPL + OFFL, 0);
+	std::partial_sort(idx, idx + POPL, idx + POPL + OFFL, [](const int& i, const int& j){
+		return objective[j] < objective[i];
+	});
+
+	for (int i = 0; i < POPL - 1; ++i)
+		assert(objective[idx[i]] >= objective[idx[i + 1]]);
+	for (int i = POPL; i < POPL + OFFL; ++i)
+		assert(objective[idx[POPL - 1]] >= objective[idx[i]]);
+
+	for (int i = 0; i < POPL; ++i)
+		nextPopulation->chromosomes[i] = population->chromosomes[idx[i]];
+}
+
+void Evolution::evaluateChildren() {
+	for (int i = POPL; i < POPL + OFFL; ++i) {
+		Agent agent = currentAgent;
+		const auto& chromosome = population->chromosomes[i];
+
+		for (const auto& action : chromosome.genes) {
+			agent.apply(action);
+			if (!Map::isFlying(agent))
+				break;
+		}
+
+		objective[i] = Map::evaluate(agent);
+	}
 }
 
 #ifndef NDEBUG
@@ -285,9 +276,10 @@ Action Evolution::chooseAction() {
 }
 
 void Evolution::makeStep() {
-	for (auto& chromosome : population->chromosomes) {
-		for (int i = 0; i < CHL - 1; ++i)
-			chromosome.genes[i] = chromosome.genes[i + 1];
+	for (int i = 0; i < POPL; ++i) {
+		auto& chromosome = population->chromosomes[i];
+		for (int j = 0; j < CHL - 1; ++j)
+			chromosome.genes[j] = chromosome.genes[j + 1];
 		chromosome.genes[CHL - 1] = Gene::getRandom();
 	}
 }

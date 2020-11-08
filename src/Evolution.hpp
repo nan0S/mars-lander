@@ -3,21 +3,24 @@
 
 #include "Agent.hpp"
 
-#ifndef CHL
-#define CHL 10
-#endif
 #ifndef POPL
 #define POPL 50
 #endif
+#ifndef OFFL
+#define OFFL POPL
+#endif
+#ifndef CHL
+#define CHL 10
+#endif
 
-static_assert(POPL % 2 == 0, "Population size must be divisible by 2!");
+static_assert(OFFL % 2 == 0, "Offspring size must be divisible by 2!");
 
 typedef Action Gene;
 typedef struct {
 	Gene genes[CHL];
 } Chromosome;
 typedef struct {
-	Chromosome chromosomes[POPL];
+	Chromosome chromosomes[POPL + OFFL];
 } Population;
 
 class RHEA {
@@ -31,7 +34,7 @@ private:
 	static void printConfig();
 	#endif
 	static void evolution();
-	static void selectParents();
+	static void selection();
 	static void evaluatePopulation();
 	static int selectParent(float x);
 	static void crossover();
@@ -39,6 +42,8 @@ private:
 		Chromosome& c1, Chromosome& c2);
 	static void mutation();
 	static void mutate(Chromosome& c);
+	static void replacement();
+	static void evaluateChildren();
 	#ifndef NDEBUG
 	static void printGenerationStats(int generation);
 	static void recordGeneration();
@@ -50,19 +55,18 @@ private:
 	static Population population1;
 	static Population population2;
 	static Population* population;
-	static Population* children;
+	static Population* nextPopulation;
 
 	static Agent currentAgent;
 
 	static float evolutionTimeLimit;
-	static int elite;
-	static int random;
 	static float mutationProb;
 
 	static int mutationCount;
 
-	static float fitness[POPL];
-	static int parentIdx[POPL];
+	static float fitness[POPL + OFFL];
+	static float objective[POPL + OFFL];
+	static int parentIdx[OFFL];
 };
 
 typedef RHEA Evolution;
