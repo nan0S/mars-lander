@@ -28,7 +28,7 @@ int Evolution::parentIdx[POPL];
 void Evolution::start() {
 	init();
 	
-	for (int algorithmIteration = 0; !Map::isCrashed(currentAgent); ++algorithmIteration) {
+	for (int algorithmIteration = 0; Map::isFlying(currentAgent); ++algorithmIteration) {
 		evolution();
 		auto action = chooseAction();
 		currentAgent.apply(action);
@@ -42,8 +42,14 @@ void Evolution::start() {
 	}	
 
 	#ifndef NDEBUG
-	if (Options::verbose)
+	if (Options::verbose) {
+		std::cout << "\nFinal velocity: " << currentAgent.vel << "\n";
+		std::cout << "Final angle: " << currentAgent.angle << "\n";
+		std::cout << "Final fuel: " << currentAgent.fuel << "\n";
+		std::cout << "Final position: " << currentAgent.pos << "\n";
+		std::cout << "Final state: " << Map::getShipState(currentAgent) << std::endl;
 		Drawer::draw();
+	}
 	#endif
 }
 
@@ -152,12 +158,27 @@ void Evolution::evaluatePopulation() {
 
 		for (const auto& action : chromosome.genes) {
 			agent.apply(action);
-			if (Map::isCrashed(agent))
+			if (!Map::isFlying(agent))
 				break;
 		}
 
 		sum += (fitness[i] = Map::evaluate(agent));
 	}
+
+	if (sum == 0.f)
+		for (int i = 0; i < POPL; ++i) {
+			Agent agent = currentAgent;
+			const auto& chromosome = population->chromosomes[i];
+
+			for (const auto& action : chromosome.genes) {
+				agent.apply(action);
+				if (!Map::isFlying(agent))
+					break;
+			}
+
+			std::cout << Map::getShipState(agent) << "\n";
+		}
+	assert(sum != 0.f);
 
 	for (int i = 0; i < POPL; ++i)
 		fitness[i] /= sum;
@@ -244,7 +265,7 @@ void Evolution::recordGeneration() {
 		for (const auto& action : chromosome.genes) {
 			agent.apply(action);
 			Drawer::record(agent);
-			if (Map::isCrashed(agent))
+			if (!Map::isFlying(agent))
 				break;
 		}
 	}

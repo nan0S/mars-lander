@@ -60,13 +60,14 @@ void Drawer::draw() {
 
 	int iterationIdx = 0;
 	for (const auto& iteration : iterations) {
-		std::cout << "Iteration: " << iterationIdx++ << std::endl;
+		// std::cout << "Iteration: " << iterationIdx << std::endl;
+		iterationIdx++;
 
 		int generationIdx = 0;
 		if (iterationIdx == 1) {
 			while (generationIdx < std::min(20, int(iteration.size()))) {
 				const auto& generation = iteration[generationIdx];
-				std::cout << "\tGeneration: " << generationIdx << std::endl;
+				// std::cout << "\tGeneration: " << generationIdx << std::endl;
 
 				window.clear(sf::Color::Black);
 				window.draw(land.data(), land.size(), sf::LinesStrip);
@@ -81,7 +82,7 @@ void Drawer::draw() {
 
 		for (; generationIdx < int(iteration.size()); generationIdx += 50) {
 			const auto& generation = iteration[generationIdx];
-			std::cout << "\tGeneration: " << generationIdx << std::endl;
+			// std::cout << "\tGeneration: " << generationIdx << std::endl;
 
 			window.clear(sf::Color::Black);
 			window.draw(land.data(), land.size(), sf::LinesStrip);

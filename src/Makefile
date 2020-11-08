@@ -7,8 +7,8 @@ OBJS = Options.o \
 	Agent.o \
 	Drawer.o
 
-POPULATION_SIZE = 50
-CHROMOSOME_LENGTH = 25
+POPULATION_SIZE = 200
+CHROMOSOME_LENGTH = 100
 
 CXX = g++
 CXXFLAGS = -std=c++17 -DLOCAL -Wall -Wextra -Wreorder -Ofast -O3 -flto -march=native -s

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <getopt.h>
+#include <iomanip>
 
 int Options::mapNumber = 1;
 float Options::evolutionTimeLimit = 40;
@@ -12,6 +13,8 @@ float Options::mutationProb = 0.05f;
 float Options::randomFactor = 0.1f;
 
 void Options::configure(int argc, char* argv[]) {
+std::cout << std::fixed << std::setprecision(5);
+
 	const char usagestr[] = 
 		"Usage: mars-lander [OPTIONS]...";
 
