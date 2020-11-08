@@ -167,6 +167,7 @@ float Map::evaluate(const Agent& agent) {
 }
 
 float Map::evaluateFlying(const Agent& agent) {
+	assert(false);
 	const auto& p1 = agent.pos;
 	const auto p2 = Vector(agent.pos.x, BOT_BORDER);
 
@@ -239,7 +240,7 @@ float Map::evaluateCrashedOutside(const Agent& agent) {
 	assert(collide(agent.pos, agent.lastPos, p1, p2));
 
 	#ifndef NDEBUG
-	if (Options::verbose)
+	if (Options::superVerbose)
 		std::cout << "xMark:\t" << xMark << ", p1.x:\t" << p1.x << ", p2.x:\t" << p2.x << std::endl;
 	#endif
 
@@ -248,6 +249,12 @@ float Map::evaluateCrashedOutside(const Agent& agent) {
 
 	float distance = walkDistance(lastCollisionIdx, xMark);
 	assert(0.f <= distance && distance <= 1.f);
+
+	#ifndef NDEBUG
+	if (Options::superVerbose)
+		std::cout << "CrashedOutside: " << distance << std::endl;
+	#endif
+
 	return 1.f - distance;
 }
 
@@ -263,12 +270,12 @@ float Map::evaluateCrashedInside(const Agent& agent) {
 
 	if (std::fabs(agent.vel.x) > HSPEED_LIMIT) {
 		eval += ABOVE_LIMIT_SCALE;
-		hSpeedAboveLimit = std::min(std::fabs(agent.vel.x) - HSPEED_LIMIT, MAX_HSPEED) / MAX_HSPEED;
+		hSpeedAboveLimit = (std::min(std::fabs(agent.vel.x), MAX_HSPEED) - HSPEED_LIMIT) / (MAX_HSPEED - HSPEED_LIMIT);
 		// eval += ABOVE_LIMIT_SCALE + std::min(std::fabs(agent.vel.x) - HSPEED_LIMIT, MAX_HSPEED) / MAX_HSPEED * REST_SCALE / 3.f;
 	}
 	if (std::fabs(agent.vel.y) > VSPEED_LIMIT) {
 		eval += ABOVE_LIMIT_SCALE;
-		vSpeedAboveLimit = std::min(std::fabs(agent.vel.y) - VSPEED_LIMIT, MAX_VSPEED) / MAX_VSPEED;
+		vSpeedAboveLimit = (std::min(std::fabs(agent.vel.y), MAX_VSPEED) - VSPEED_LIMIT) / (MAX_VSPEED - VSPEED_LIMIT);
 		// eval += ABOVE_LIMIT_SCALE + std::min(std::fabs(agent.vel.y) - VSPEED_LIMIT, MAX_VSPEED) / MAX_VSPEED * REST_SCALE / 3.f;
 	}
 	if (agent.angle != 0) {
@@ -276,19 +283,22 @@ float Map::evaluateCrashedInside(const Agent& agent) {
 		angleAboveLimit = float(std::abs(agent.angle)) / MAX_ANGLE;
 		// eval += ABOVE_LIMIT_SCALE + float(std::abs(agent.angle)) / MAX_ANGLE * REST_SCALE / 3.f;
 	}
-	
+
 	eval += (hSpeedAboveLimit + vSpeedAboveLimit + angleAboveLimit) * REST_SCALE / 3.f;
-	assert(0.f <= eval && eval <= 1.f);
+	assert(0.f <= eval && eval <= 1.000001f);
 
 	#ifndef NDEBUG
-	if (Options::verbose)
+	if (Options::superVerbose) {
 		std::cout << "eval:\t" << eval << ", hSpeedAboveLimit:\t" << hSpeedAboveLimit << ", vSpeedAboveLimit:\t" << vSpeedAboveLimit << ", angleAboveLimit:\t" << angleAboveLimit << std::endl;
+		std::cout << "CrashedInside: " << eval << std::endl;
+	}
 	#endif
 
 	return 1.f - eval;
 }
 
 float Map::evaluateLanded(const Agent& agent) {
+	assert(false);
 	assert(agent.fuel > 0);
 	float eval = float(agent.fuel) / initialFuel;
 	assert(0.f <= eval && eval <= 1.f);
@@ -296,6 +306,7 @@ float Map::evaluateLanded(const Agent& agent) {
 }
 
 float Map::evaluateFuelLack(const Agent& agent) {
+	assert(false);
 	return 0.f;	
 }
 

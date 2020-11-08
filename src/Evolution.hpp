@@ -41,7 +41,7 @@ private:
 	static void cross(const Chromosome& p1, const Chromosome& p2,
 		Chromosome& c1, Chromosome& c2);
 	static void mutation();
-	static void mutate(Chromosome& c);
+	static void mutate(Gene& gene);
 	static void replacement();
 	static void evaluateChildren();
 	#ifndef NDEBUG
@@ -61,6 +61,7 @@ private:
 
 	static float evolutionTimeLimit;
 	static float mutationProb;
+	static int elite;
 
 	static int mutationCount;
 

@@ -7,7 +7,7 @@ OBJS = Options.o \
 	Agent.o \
 	Drawer.o
 
-POPULATION_SIZE = 200
+POPULATION_SIZE = 50
 OFFSPRING_SIZE = $(POPULATION_SIZE)
 CHROMOSOME_LENGTH = 100
 
@@ -17,7 +17,7 @@ LIBS = -lsfml-graphics -lsfml-window -lsfml-system
 
 DFLAGS = -g -fsanitize=address -fsanitize=undefined
 RFLAGS = -DNDEBUG
-OPTS = -DPOPL=$(POPULATION_SIZE) -DCHL=$(CHROMOSOME_LENGTH)
+OPTS = -DPOPL=$(POPULATION_SIZE) -DOFFL=$(OFFSPRING_SIZE) -DCHL=$(CHROMOSOME_LENGTH)
 
 all: $(TARGET)
 

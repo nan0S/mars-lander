@@ -60,7 +60,7 @@ private:
 	static constexpr int VSPEED_LIMIT = 40;
 	static constexpr int HSPEED_LIMIT = 20;
 	static constexpr float VSPEED_ABOVE_LIMIT_SCALE = 4.f;
-	static constexpr float HSPEED_ABOVE_LIMIT_SCALE = 4.f;
+	static constexpr float HSPEED_ABOVE_LIMIT_SCALE = 2.f;
 	static constexpr float MAX_HSPEED = HSPEED_LIMIT * HSPEED_ABOVE_LIMIT_SCALE;
 	static constexpr float MAX_VSPEED = VSPEED_LIMIT * VSPEED_ABOVE_LIMIT_SCALE;
 	static constexpr int MAX_ANGLE = 90;
