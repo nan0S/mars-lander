@@ -75,10 +75,8 @@ void Evolution::initPopulation() {
 
 	for (int i = 0; i < POPL; ++i) {
 		auto& chromosome = population->chromosomes[i];
-		Gene randGene = Gene::getRandom();
 		for (auto& gene : chromosome.genes)
-			gene = randGene;
-			// gene = Gene::getRandom();
+			gene = Gene::getRandom();
 	}
 }
 
@@ -238,8 +236,8 @@ void Evolution::mutation() {
 
 void Evolution::mutate(Gene& gene) {
 	++mutationCount;
-	gene.dAngle = -gene.dAngle;
-	// gene = Gene::getRandom();
+	// gene.dAngle = -gene.dAngle;
+	gene = Gene::getRandom();
 }
 
 void Evolution::replacement() {
@@ -262,9 +260,9 @@ void Evolution::replacement() {
 void Evolution::printGenerationStats(int generation) {
 	evaluatePopulation();
 	std::cout << "\tGeneration: " << generation + 1 << "\n";
-	std::cout << "\t\tMin: " << *std::min_element(fitness, fitness + POPL) << " ";
-	std::cout << "Avg: " << std::accumulate(fitness, fitness + POPL, 0.f) / POPL << " ";
-	std::cout << "Max: " << *std::max_element(fitness, fitness + POPL) << "\n";
+	std::cout << "\t\tMin: " << *std::min_element(objective, objective + POPL) << " ";
+	std::cout << "Avg: " << std::accumulate(objective, objective + POPL, 0.f) / POPL << " ";
+	std::cout << "Max: " << *std::max_element(objective, objective + POPL) << "\n";
 	std::cout << "\t\tMutation rate: " << float(mutationCount) / (OFFL * CHL) << std::endl;
 }
 
@@ -288,7 +286,7 @@ Action Evolution::chooseAction() {
 	evaluatePopulation();
 
 	int bestIndividual = std::max_element(fitness, fitness + POPL) - fitness;
-	const auto& bestAction = population->chromosomes[bestIndividual].genes[0];
+	const auto bestAction = population->chromosomes[bestIndividual].genes[0];
 
 	makeStep();
 

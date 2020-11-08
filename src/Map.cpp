@@ -164,7 +164,7 @@ float Map::evaluate(const Agent& agent) {
 	ShipState shipState = getShipState(agent);
 	switch (shipState) {
 		case ShipState::Landed:
-			return 0.9f + 0.1f * evaluateLanded(agent);
+			return 110000.f + 0.1f * evaluateLanded(agent);
 		case ShipState::CrashedInside:
 			return 0.5f + 0.2f * evaluateCrashedInside(agent);
 		case ShipState::CrashedOutside:
@@ -311,7 +311,7 @@ float Map::evaluateCrashedInside(const Agent& agent) {
 }
 
 float Map::evaluateLanded(const Agent& agent) {
-	assert(false);
+	// assert(false);
 	assert(agent.fuel > 0);
 	float eval = float(agent.fuel) / initialFuel;
 	assert(0.f <= eval && eval <= 1.f);
