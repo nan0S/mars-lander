@@ -1,6 +1,5 @@
 #include "Agent.hpp"
-
-#include <cmath>
+#include "Common.hpp"
 
 Action Action::getRandom() {
 	Action action;
@@ -9,10 +8,6 @@ Action Action::getRandom() {
 	return action;
 }
 
-std::ostream& operator<<(std::ostream& out, const Action& action) {
-	return out << "(dAngle=" << action.dAngle << " , dThrust=" << action.dThrust << ")";  
-}
- 
 void Agent::apply(const Action& action) {
 	angle = clamp(angle + action.dAngle, MIN_ANGLE, MAX_ANGLE);
 	thrust = clamp(thrust + action.dThrust, MIN_THRUST, MAX_THRUST);
@@ -26,11 +21,4 @@ void Agent::apply(const Action& action) {
 	pos.y += vel.y;
 
 	fuel -= thrust;
-}
-
-std::ostream& operator<<(std::ostream& out, const Agent& agent) {
-	return out << "(x=" << agent.pos.x << " , y=" << agent.pos.y
-		<< ", xvel=" << agent.vel.x << " , yvel=" << agent.vel.y
-		<< ", angle=" << agent.angle << ", thrust=" << agent.thrust
-		<< ", fuel=" << agent.fuel << ")";
 }

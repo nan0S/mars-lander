@@ -2,7 +2,6 @@
 #define AGENT_HPP
 
 #include "Common.hpp"
-
 #include <iostream>
 
 struct Action {
@@ -21,7 +20,9 @@ struct Action {
 class Agent {
 public:
 	void apply(const Action& action);
+	friend std::ostream& operator<<(std::ostream& out, const Agent& agent);
 
+public:
 	Vector pos;
 	Vector lastPos;
 	Vector vel;
@@ -29,14 +30,11 @@ public:
 	int thrust;
 	int fuel;
 
-	friend std::ostream& operator<<(std::ostream& out, const Agent& agent);
-
 private:
 	constexpr static int MIN_ANGLE = -90;
 	constexpr static int MAX_ANGLE = +90;
 	constexpr static int MIN_THRUST = 0;
 	constexpr static int MAX_THRUST = 4;
-
 	constexpr static float G = 3.711;
 };
 

@@ -1,9 +1,8 @@
 #ifndef COMMON_HPP
 #define COMMON_HPP
 
-#include <string>
+#include <utility>
 #include <iostream>
-#include <cmath>
 #include <random>
 #include <chrono>
 
@@ -13,114 +12,13 @@
 typedef std::pair<int, int> Point;
 typedef std::pair<float, float> Vector;
 
-void errorExit(const std::string& msg);
-
 template<typename T1, typename T2>
 std::ostream& operator<<(std::ostream& out, const std::pair<T1, T2>& p) {
 	return out << "(" << p.x << " , " << p.y << ")";
 }
 
-template<typename T>
-T clamp(T v, const T& a, const T& b) {
-	return std::min(std::max(v, a), b);
-}
-
-static float sinn[181] = {
-	-1, -0.999848, -0.999391, -0.99863, -0.997564,
-	-0.996195, -0.994522, -0.992546, -0.990268, -0.987688,
-	-0.984808, -0.981627, -0.978148, -0.97437, -0.970296,
-	-0.965926, -0.961262, -0.956305, -0.951057, -0.945519,
-	-0.939693, -0.93358, -0.927184, -0.920505, -0.913545,
-	-0.906308, -0.898794, -0.891007, -0.882948, -0.87462,
-	-0.866025, -0.857167, -0.848048, -0.838671, -0.829038,
-	-0.819152, -0.809017, -0.798636, -0.788011, -0.777146,
-	-0.766044, -0.75471, -0.743145, -0.731354, -0.71934,
-	-0.707107, -0.694658, -0.681998, -0.669131, -0.656059,
-	-0.642788, -0.62932, -0.615662, -0.601815, -0.587785,
-	-0.573576, -0.559193, -0.544639, -0.529919, -0.515038,
-	-0.5, -0.48481, -0.469472, -0.45399, -0.438371,
-	-0.422618, -0.406737, -0.390731, -0.374607, -0.358368,
-	-0.34202, -0.325568, -0.309017, -0.292372, -0.275637,
-	-0.258819, -0.241922, -0.224951, -0.207912, -0.190809,
-	-0.173648, -0.156434, -0.139173, -0.121869, -0.104528,
-	-0.0871557, -0.0697565, -0.052336, -0.0348995, -0.0174524,
-	0, 0.0174524, 0.0348995, 0.052336, 0.0697565,
-	0.0871557, 0.104528, 0.121869, 0.139173, 0.156434,
-	0.173648, 0.190809, 0.207912, 0.224951, 0.241922,
-	0.258819, 0.275637, 0.292372, 0.309017, 0.325568,
-	0.34202, 0.358368, 0.374607, 0.390731, 0.406737,
-	0.422618, 0.438371, 0.45399, 0.469472, 0.48481,
-	0.5, 0.515038, 0.529919, 0.544639, 0.559193,
-	0.573576, 0.587785, 0.601815, 0.615662, 0.62932,
-	0.642788, 0.656059, 0.669131, 0.681998, 0.694658,
-	0.707107, 0.71934, 0.731354, 0.743145, 0.75471,
-	0.766044, 0.777146, 0.788011, 0.798636, 0.809017,
-	0.819152, 0.829038, 0.838671, 0.848048, 0.857167,
-	0.866025, 0.87462, 0.882948, 0.891007, 0.898794,
-	0.906308, 0.913545, 0.920505, 0.927184, 0.93358,
-	0.939693, 0.945519, 0.951057, 0.956305, 0.961262,
-	0.965926, 0.970296, 0.97437, 0.978148, 0.981627,
-	0.984808, 0.987688, 0.990268, 0.992546, 0.994522,
-	0.996195, 0.997564, 0.99863, 0.999391, 0.999848,
-	1,
-};
-static float coss[181] = {
-	-4.37114e-08, 0.0174524, 0.0348995, 0.052336, 0.0697565,
-	0.0871558, 0.104528, 0.121869, 0.139173, 0.156434,
-	0.173648, 0.190809, 0.207912, 0.224951, 0.241922,
-	0.258819, 0.275637, 0.292372, 0.309017, 0.325568,
-	0.34202, 0.358368, 0.374607, 0.390731, 0.406737,
-	0.422618, 0.438371, 0.453991, 0.469472, 0.48481,
-	0.5, 0.515038, 0.529919, 0.544639, 0.559193,
-	0.573576, 0.587785, 0.601815, 0.615662, 0.62932,
-	0.642788, 0.656059, 0.669131, 0.681998, 0.694658,
-	0.707107, 0.71934, 0.731354, 0.743145, 0.75471,
-	0.766044, 0.777146, 0.788011, 0.798636, 0.809017,
-	0.819152, 0.829038, 0.838671, 0.848048, 0.857167,
-	0.866025, 0.87462, 0.882948, 0.891007, 0.898794,
-	0.906308, 0.913545, 0.920505, 0.927184, 0.93358,
-	0.939693, 0.945519, 0.951057, 0.956305, 0.961262,
-	0.965926, 0.970296, 0.97437, 0.978148, 0.981627,
-	0.984808, 0.987688, 0.990268, 0.992546, 0.994522,
-	0.996195, 0.997564, 0.99863, 0.999391, 0.999848,
-	1, 0.999848, 0.999391, 0.99863, 0.997564,
-	0.996195, 0.994522, 0.992546, 0.990268, 0.987688,
-	0.984808, 0.981627, 0.978148, 0.97437, 0.970296,
-	0.965926, 0.961262, 0.956305, 0.951057, 0.945519,
-	0.939693, 0.93358, 0.927184, 0.920505, 0.913545,
-	0.906308, 0.898794, 0.891007, 0.882948, 0.87462,
-	0.866025, 0.857167, 0.848048, 0.838671, 0.829038,
-	0.819152, 0.809017, 0.798636, 0.788011, 0.777146,
-	0.766044, 0.75471, 0.743145, 0.731354, 0.71934,
-	0.707107, 0.694658, 0.681998, 0.669131, 0.656059,
-	0.642788, 0.62932, 0.615662, 0.601815, 0.587785,
-	0.573576, 0.559193, 0.544639, 0.529919, 0.515038,
-	0.5, 0.48481, 0.469472, 0.453991, 0.438371,
-	0.422618, 0.406737, 0.390731, 0.374607, 0.358368,
-	0.34202, 0.325568, 0.309017, 0.292372, 0.275637,
-	0.258819, 0.241922, 0.224951, 0.207912, 0.190809,
-	0.173648, 0.156434, 0.139173, 0.121869, 0.104528,
-	0.0871558, 0.0697565, 0.052336, 0.0348995, 0.0174524,
-	-4.37114e-08,
-};
-
-inline float sin(int x) {
-	return sinn[x + 90];
-}
-
-inline float cos(int x) {
-	return coss[x + 90];
-}
-
 namespace Random {
 	extern std::mt19937 rng;
-
-	template<typename T>
-	using dist_t = std::conditional_t<
-			std::is_integral_v<T>,
-			std::uniform_int_distribution<T>,
-			std::uniform_real_distribution<T>
-	>;
 
 	template<typename T>
 	using T_Int = std::enable_if_t<
@@ -131,8 +29,15 @@ namespace Random {
 		!std::is_integral_v<T>, T>;
 
 	template<typename T>
-	T rand(T a, T b) {
-		return dist_t<T>{a, b}(rng);
+	using dist_t = std::conditional_t<
+		std::is_integral_v<T>,
+		std::uniform_int_distribution<T>,
+		std::uniform_real_distribution<T>
+	>;
+
+	template<typename T>
+	NT_Int<T> rand() {
+		return dist_t<T>{0, 1}(rng);
 	}
 
 	template<typename T>
@@ -141,26 +46,31 @@ namespace Random {
 	}
 
 	template<typename T>
-	NT_Int<T> rand(T n) {
-		return dist_t<T>{0, n}(rng);
+	NT_Int<T> rand(T x) {
+		return dist_t<T>{0, x}(rng);
+	}
+
+	template<typename T>
+	T rand(T a, T b) {
+		return dist_t<T>{a, b}(rng);
 	}
 }
 
-class Timer {
-public:
-	Timer(float timeLeft);
-	bool isTimeLeft();
-	void start();
-	void stop();
+template<typename T>
+T clamp(T v, const T& a, const T& b) {
+	return std::min(std::max(v, a), b);
+}
 
-private:
-	void passTime();
+extern const float ssin[];
+extern const float scos[];
 
-private:
-	float timeLeft;
-	std::chrono::time_point<std::chrono::high_resolution_clock> lastTime;
-	bool isStarted = true;
-};
+inline float sin(int x) {
+	return ssin[x + 90];
+}
+
+inline float cos(int x) {
+	return scos[x + 90];
+}
 
 template<typename T1, typename T2>
 inline bool orientation(const std::pair<T1, T1>& p1, const std::pair<T1, T1>& p2, const std::pair<T2, T2>& q) {
@@ -168,11 +78,25 @@ inline bool orientation(const std::pair<T1, T1>& p1, const std::pair<T1, T1>& p2
 }
 
 inline bool collide(const Vector& p1, const Vector& p2, const Point& q1, const Point& q2) {
-	int o1 = orientation(p1, p2, q1);
-	int o2 = orientation(p1, p2, q2);
-	int o3 = orientation(q1, q2, p1);
-	int o4 = orientation(q1, q2, p2);
+	bool o1 = orientation(p1, p2, q1);
+	bool o2 = orientation(p1, p2, q2);
+	bool o3 = orientation(q1, q2, p1);
+	bool o4 = orientation(q1, q2, p2);
 	return o1 != o2 && o3 != o4;
 }
+
+class Timer {
+public:
+	Timer(float givenTime);
+
+	inline bool isTimeLeft() {
+		auto end = std::chrono::high_resolution_clock::now(); 
+		return std::chrono::duration<float>(end - start).count() * 1000 < givenTime;
+	}
+
+private:
+	float givenTime;
+	std::chrono::time_point<std::chrono::high_resolution_clock> start;
+};
 
 #endif /* COMMON_HPP */

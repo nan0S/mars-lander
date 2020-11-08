@@ -1,23 +1,17 @@
 #include "Options.hpp"
 
-#include "Common.hpp"
-
-#include <getopt.h>
 #include <iostream>
-#include <unistd.h>
+#include <getopt.h>
 
 int Options::mapNumber = 1;
 float Options::evolutionTimeLimit = 40;
-
-float Options::eliteFactor = 0.2f;
-float Options::mutationProb = 0.01f;
-float Options::randomnessFactor = 0.1f;
-
 bool Options::verbose = false;
 
-void Options::configure(int argc, char* argv[]) {
-	std::cout.imbue(std::locale(""));
+float Options::eliteFactor = 0.2f;
+float Options::mutationProb = 0.05f;
+float Options::randomFactor = 0.1f;
 
+void Options::configure(int argc, char* argv[]) {
 	const char usagestr[] = 
 		"Usage: mars-lander [OPTIONS]...";
 
@@ -58,7 +52,7 @@ void Options::configure(int argc, char* argv[]) {
 				eliteFactor = std::stof(optarg);
 				break;
 			case 'r':
-				randomnessFactor = std::stof(optarg);
+				randomFactor = std::stof(optarg);
 				break;
 			case 'v':
 				verbose = true;
@@ -68,18 +62,19 @@ void Options::configure(int argc, char* argv[]) {
 				exit(EXIT_SUCCESS);
 		}
 
+	#ifndef NDEBUG
 	if (verbose)
 		show();
+	#endif
 }
 
+#ifndef NDEBUG
 void Options::show() {
-	std::cout << std::endl;
-	std::cout << "mapNumber = " << mapNumber << "\n";
-	std::cout << "evolutionTimeLimit = " << evolutionTimeLimit << "\n";
-	std::cout << "eliteFactor = " << eliteFactor << "\n";
-	std::cout << "mutationProb = " << mutationProb << "\n";
-	std::cout << "randomnessFactor = " << randomnessFactor;
-	std::cout << std::endl;
-
-	getchar();
+	std::cout << "\nOptions configuration:\n";
+	std::cout << "\tmapNumber = " << mapNumber << "\n";
+	std::cout << "\tevolutionTimeLimit = " << evolutionTimeLimit << "\n";
+	std::cout << "\teliteFactor = " << eliteFactor << "\n";
+	std::cout << "\tmutationProb = " << mutationProb << "\n";
+	std::cout << "\trandomFactor = " << randomFactor << std::endl;
 }
+#endif

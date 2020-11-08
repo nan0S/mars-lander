@@ -9,29 +9,25 @@
 
 class Drawer {
 public:
-	static void init(const std::vector<Point>& points);
-	static void draw();
-	static void wait();
+	static void init();
 	static void record(const Agent& agent);
-	static void seal(const Agent& agent);
-
 	static void endGeneration();
-	static void endIteration();
-
-	template<typename T>
-	static sf::Vector2f transform(const std::pair<T, T>& p) {
-		return { float(p.x), float(Map::TOP_BORDER - p.y) };
-	}
+	static void seal(const Agent& agent);
+	static void draw();
 
 private:
-	static std::vector<sf::Vertex> map;
+	template<typename T>
+	static sf::Vector2f transform(const std::pair<T, T>& p);
+
+private:
+	static std::vector<sf::Vertex> land;
+	static sf::RenderWindow window;
 
 	static std::vector<std::vector<std::vector<sf::Vertex>>> iterations;
 	static std::vector<std::vector<sf::Vertex>> generations;
 	static std::vector<sf::Vertex> generation;
 	static std::vector<sf::Vertex> sealed;
 
-	static sf::RenderWindow window;
 	static constexpr int W = 1280;
 	static constexpr int H = float(W) * Map::TOP_BORDER / Map::RIGHT_BORDER;
 };

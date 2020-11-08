@@ -1,19 +1,17 @@
-#include "Agent.hpp"
-#include "Map.hpp"
 
-#ifdef VISUAL
-#include "Drawer.hpp"
-#endif
-
+#include <iostream>
+#include <iomanip>
 #include <getopt.h>
 
+#include "Options.hpp"
+#include "Map.hpp"
+#include "Drawer.hpp"
+
 int timeLimit = 100;
-int simLength = 50;
-int mapNr = 1;
 
 void parseArgs(int argc, char* argv[]) {
 	const char usagestr[] = 
-		"Usage: random-simulations [OPTIONS]... [TIME LIMIT] [SIMULATION LENGTH] [MAP NUMBER]";
+		"Usage: random-simulations [OPTIONS]... [TIME LIMIT] [MAP NUMBER]";
 
 	const char helpstr[] =
 		"Run Mars Lander program.\n\n"
@@ -33,66 +31,52 @@ void parseArgs(int argc, char* argv[]) {
 		}
 
 	int rest = argc - optind;
-	if (rest > 3)
-		errorExit(usagestr);
+	if (rest > 2) {
+		std::cerr << usagestr;
+		exit(EXIT_FAILURE);
+	}
 	if (rest > 0)
 		timeLimit = std::stoi(argv[optind++]);
 	if (rest > 1)
-		simLength = std::stoi(argv[optind++]);
-	if (rest > 2)
-		mapNr = std::stoi(argv[optind++]);
+		Options::mapNumber = std::stoi(argv[optind++]);
 }
 
 class Simulator {
 public:
-	static void simulate(const int timeLimit, const int simLength) {
+	static void simulate() {
 		Timer timer(timeLimit);
-		int simulationsDone = 0;
 		Agent agent;
+		int simulationsDone = 0;
+		int stepsTotal = 0;
 
-		#ifdef VISUAL
-		int cnt = 50;
-		while (cnt--) {
-		#else
 		while (timer.isTimeLeft()) {
-		#endif
 			Map::init(agent);
-
-			for (int j = 0; j < simLength; ++j) {
+			while (!Map::isCrashed(agent)) {
 				Action action = Action::getRandom();
 				agent.apply(action);
-
-				#ifdef VISUAL				
-				Drawer::record(agent);
-				#endif
-
-				if (Map::isCrashed(agent))
-					break;
+				++stepsTotal;
 			}
-
 			++simulationsDone;
 		}
 
-		std::cout << "\nDone " << simulationsDone << " simulations in " << timeLimit << " ms" << std::endl;
-		std::cout << "Simulation length = " << simLength << std::endl << std::endl; 
+		std::cout << std::fixed << std::setprecision(2);
+		std::cout << "\nDone " << simulationsDone << " simulations in " << timeLimit << " ms" << "\n";
+		std::cout << "Average simulation length: " << stepsTotal / double(simulationsDone) << "\n\n";
 	}
 };
 
 int main(int argc, char* argv[]) {
-	std::cout.imbue(std::locale(""));
 	parseArgs(argc, argv);
+	Map::load();
 
-	Map::loadMap();
-
-	#ifdef VISUAL
-	Drawer::init(Map::points);
-	Drawer::draw();
+	#ifndef NDEBUG
+	Drawer::init();
 	#endif
 
-	Simulator::simulate(timeLimit, simLength);
+	Simulator::simulate();
 
-	#ifdef VISUAL
-	Drawer::wait();
+	#ifndef NDEBUG
+	Drawer::draw();
 	#endif
 
 	return 0;

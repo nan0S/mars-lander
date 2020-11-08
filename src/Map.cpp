@@ -1,5 +1,4 @@
 #include "Map.hpp"
-
 #include "Options.hpp"
 
 #include <cassert>
@@ -17,67 +16,64 @@ const std::string Map::mapNames[] = {
 const int Map::mapCount = sizeof(mapNames) / sizeof(mapNames[0]);
 std::string Map::currentMapName;
 
-const std::string testPath = "tests/";
-
-int Map::n;
+int Map::pointCount;
 std::vector<Point> Map::points;
-std::vector<Point> Map::lines;
+
 int Map::landLeft;
 int Map::landRight;
+int Map::landMiddle;
 int Map::landGround;
-
 Vector Map::initialPos;
 Vector Map::initialVel;
-
 int Map::initialFuel;
 int Map::initialAngle;
 int Map::initialThrust;
 
-void Map::loadMap() {
+void Map::load() {
 	int mapNumber = Options::mapNumber;
 	assert(1 <= mapNumber && mapNumber <= mapCount);
 
 	currentMapName = mapNames[mapNumber - 1];
-	std::string path = testPath + currentMapName + ".txt";
-
+	std::string path = "tests/" + currentMapName + ".txt";
 	std::ifstream ifs(path);
 	assert(ifs.is_open());
 
-	ifs >> n;
-	points.reserve(n);
-	lines.reserve(n + 1);
-	Point lastPoint { LEFT_BORDER, TOP_BORDER };
-
-
-	for (int i = 0; i < n; ++i) {
+	ifs >> pointCount;
+	points.reserve(pointCount);
+	for (int i = 0; i < pointCount; ++i) {
 		int x, y;
 		ifs >> x >> y;
 		points.emplace_back(x, y);
-		lines.emplace_back(x - lastPoint.x, y - lastPoint.y);
-		lastPoint = {x, y};
 	}
-	lines.emplace_back(RIGHT_BORDER - lastPoint.x, TOP_BORDER - lastPoint.y);
-	
+
 	ifs >> landLeft >> landRight;
 	ifs >> landGround;
 	ifs >> initialPos.x >> initialPos.y;
 	ifs >> initialVel.x >> initialVel.y;
 	ifs >> initialFuel >> initialAngle >> initialThrust;
+
+	landMiddle = (landLeft + landRight) / 2;
+
+	if (Options::verbose)
+		show();
 }
 
-void Map::showMap() {
-	std::cout << "\nMap name: " << currentMapName << "\n";
-	std::cout << "\nNumber of points: " << n << "\n";
+void Map::show() {
+	std::cout << "\nMap configuration:\n";
+	std::cout << "\tMap name: " << currentMapName << "\n";
+	std::cout << "\n\tNumber of points: " << pointCount << "\n";
 	for (const auto& p : points)
-		std::cout << p << "\n";
+		std::cout << "\t" << p << "\n";
 	std::cout << "\n";
 
-	std::cout << "Landing zone: " << Point(landLeft, landGround) << " " << Point(landRight, landGround) << "\n\n";
-	std::cout << "Initial position: " << initialPos << "\n";
-	std::cout << "Initial velocity: " << initialVel << "\n";
-	std::cout << "Initial fuel: " << initialFuel << "\n";
-	std::cout << "Initial angle: " << initialAngle << "\n";
-	std::cout << "Initial thrust: " << initialThrust << "\n\n";
+	std::cout << "\tLanding zone: " 
+		<< Point(landLeft, landGround) << " " 
+		<< Point(landRight, landGround) << "\n\n";
+	std::cout << "\tInitial position: " << initialPos << "\n";
+	std::cout << "\tInitial velocity: " << initialVel << "\n";
+	std::cout << "\tInitial fuel: " << initialFuel << "\n";
+	std::cout << "\tInitial angle: " << initialAngle << "\n";
+	std::cout << "\tInitial thrust: " << initialThrust << "\n";
 }
 
 void Map::init(Agent& agent) {
@@ -89,55 +85,34 @@ void Map::init(Agent& agent) {
 	agent.fuel = initialFuel;
 }
 
-bool Map::isCrashed(const State& state) {
-	switch (state) {
-		case State::Fuel:
-		case State::Crash:
-			return true;
-		default:
-			return false;
-	}
-}
-
-State Map::getState(const Agent& agent) {
+bool Map::isCrashed(const Agent& agent) {
 	if (agent.fuel <= 0)
-		return State::Fuel;
+		return true;
 
 	if (agent.pos.x <= LEFT_BORDER || agent.pos.x >= RIGHT_BORDER)
-		return State::Crash;
+		return true;
 	if (agent.pos.y <= BOT_BORDER || agent.pos.y >= TOP_BORDER)
-		return State::Crash;
+		return true;
 
-	auto& p1 = agent.pos;
-	auto& p2 = agent.lastPos;
+	const auto& p1 = agent.pos;
+	const auto& p2 = agent.lastPos;
 
-	for (int i = 0; i < n - 1; ++i) {
-		auto& q1 = points[i];
-		auto& q2 = points[i + 1];
+	for (int i = 0; i < pointCount - 1; ++i) {
+		const auto& q1 = points[i];
+		const auto& q2 = points[i + 1];
 
 		if (collide(p1, p2, q1, q2))
-			return State::Crash;
-	}
+			return true;
+	} 
 
-	return State::Good;
-}
-
-std::ostream& operator<<(std::ostream& out, const State& state) {
-	switch (state) {
-		case State::Crash:
-			return out << "Crash";
-		case State::Fuel:
-			return out << "Fuel";
-		case State::Good:
-			return out << "Good";
-	}
-	assert(false);
+	return false;
 }
 
 float Map::evaluate(const Agent& agent) {
-	float dx = agent.pos.x - (landLeft + landRight) / 2;
+	float dx = agent.pos.x - landMiddle;
 	float dy = agent.pos.y - landGround;
 	float d = std::sqrt(dx * dx + dy * dy);
-	assert(d <= 30000);
-	return 30000 - d;
+	// return d;
+	assert(d <= 30000.f);
+	return 30000.f - d;
 }

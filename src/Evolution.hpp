@@ -6,7 +6,6 @@
 #ifndef CHL
 #define CHL 10
 #endif
-
 #ifndef POPL
 #define POPL 50
 #endif
@@ -14,11 +13,9 @@
 static_assert(POPL % 2 == 0, "Population size must be divisible by 2!");
 
 typedef Action Gene;
-
 typedef struct {
 	Gene genes[CHL];
 } Chromosome;
-
 typedef struct {
 	Chromosome chromosomes[POPL];
 } Population;
@@ -29,42 +26,43 @@ public:
 
 private:
 	static void init();
-	static void printPopulation();
-
+	static void initPopulation();
+	#ifndef NDEBUG
+	static void printConfig();
+	#endif
 	static void evolution();
 	static void selectParents();
-	static float evaluatePopulation();
+	static void evaluatePopulation();
 	static int selectParent(float x);
 	static void crossover();
-	static void cross(const Chromosome& p1, const Chromosome& p2, 
+	static void cross(const Chromosome& p1, const Chromosome& p2,
 		Chromosome& c1, Chromosome& c2);
 	static void mutation();
-	static void mutate(Chromosome& ch);
+	static void mutate(Chromosome& c);
+	#ifndef NDEBUG
+	static void printGenerationStats(int generation);
+	static void recordGeneration();
+	#endif
 	static Action chooseAction();
 	static void makeStep();
 
-	static void printGenerationStats(int generation);
-
-	#ifdef VISUAL
-	static void recordGeneration();
-	#endif
-
+private:
 	static Population population1;
 	static Population population2;
-
 	static Population* population;
 	static Population* children;
 
-	static Agent agent;
+	static Agent currentAgent;
+
 	static float evolutionTimeLimit;
+	static int elite;
+	static int random;
+	static float mutationProb;
+
+	static int mutationCount;
+
 	static float fitness[POPL];
 	static int parentIdx[POPL];
-
-	static int elite;
-	static float mutationProb;
-	static int random;
-
-	static int mutations;
 };
 
 typedef RHEA Evolution;
