@@ -43,7 +43,6 @@ private:
 	static void mutation();
 	static void mutate(Gene& gene);
 	static void replacement();
-	static void evaluateChildren();
 	#ifndef NDEBUG
 	static void printGenerationStats(int generation);
 	static void recordGeneration();

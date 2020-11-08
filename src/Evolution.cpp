@@ -75,8 +75,10 @@ void Evolution::initPopulation() {
 
 	for (int i = 0; i < POPL; ++i) {
 		auto& chromosome = population->chromosomes[i];
+		Gene randGene = Gene::getRandom();
 		for (auto& gene : chromosome.genes)
-			gene = Gene::getRandom();
+			gene = randGene;
+			// gene = Gene::getRandom();
 	}
 }
 
@@ -93,8 +95,8 @@ void Evolution::printConfig() {
 void Evolution::evolution() {
 	Timer timer(evolutionTimeLimit);
 
-	// for (int generation = 0; generation < 50; ++generation) {
-	for (int generation = 0; timer.isTimeLeft(); ++generation) {
+	for (int generation = 0; generation < 50; ++generation) {
+	// for (int generation = 0; timer.isTimeLeft(); ++generation) {
 		mutationCount = 0;
 		selection();
 		crossover();
@@ -170,12 +172,27 @@ void Evolution::crossover() {
 	}
 }
 
-inline void blend(const Gene& p1, const Gene& p2, Gene& c, float& p, float& q) {
+static inline void blend(const Gene& p1, const Gene& p2, Gene& c, float& p, float& q) {
 	c.dAngle = clamp<int>(p1.dAngle * p + p2.dAngle * q, Action::MIN_DANGLE, Action::MAX_DANGLE);
 	c.dThrust = clamp<int>(p1.dThrust * p + p2.dThrust * q, Action::MIN_DTHRUST, Action::MAX_DTHRUST);
 }
 
-void Evolution::cross(const Chromosome& p1, const Chromosome& p2,
+static void uniformCross(const Chromosome& p1, const Chromosome& p2,
+	Chromosome& c1, Chromosome& c2) {
+	int crossIdx = Random::rand(CHL + 1);
+	assert(0 <= crossIdx && crossIdx <= CHL);
+
+	for (int i = 0; i < crossIdx; ++i) {
+		c1.genes[i] = p1.genes[i];
+		c2.genes[i] = p2.genes[i];
+	}
+	for (int i = crossIdx; i < CHL; ++i) {
+		c1.genes[i] = p2.genes[i];
+		c2.genes[i] = p1.genes[i];
+	}
+}
+
+static void continuousCross(const Chromosome& p1, const Chromosome& p2,
 	Chromosome& c1, Chromosome& c2) {
 	float p = Random::rand(1.0f);
 	float q = 1 - p;
@@ -184,77 +201,61 @@ void Evolution::cross(const Chromosome& p1, const Chromosome& p2,
 		blend(p1.genes[i], p2.genes[i], c1.genes[i], p, q);
 		blend(p1.genes[i], p2.genes[i], c2.genes[i], q, p);
 	}
-	// int crossIdx = Random::rand(CHL + 1);
-	// assert(0 <= crossIdx && crossIdx <= CHL);
+}
 
-	// for (int i = 0; i < crossIdx; ++i) {
-	// 	c1.genes[i] = p1.genes[i];
-	// 	c2.genes[i] = p2.genes[i];
-	// }
-	// for (int i = crossIdx; i < CHL; ++i) {
-	// 	c1.genes[i] = p2.genes[i];
-	// 	c2.genes[i] = p1.genes[i];
-	// }
+static void shuffleCross(const Chromosome& p1, const Chromosome& p2,
+	Chromosome& c1, Chromosome& c2) {
+	for (int i = 0; i < CHL; ++i) {
+		if (Random::rand<float>() <= 0.5f) {
+			c1.genes[i] = p1.genes[i];
+			c2.genes[i] = p2.genes[i];
+		}
+		else {
+			c1.genes[i] = p2.genes[i];
+			c2.genes[i] = p1.genes[i];
+		}
+	}
+}
+
+void Evolution::cross(const Chromosome& p1, const Chromosome& p2,
+	Chromosome& c1, Chromosome& c2) {
+	// continuousCross(p1, p2, c1, c2);
+	// shuffleCross(p1, p2, c1, c2);
+	uniformCross(p1, p2, c1, c2);
 }
 
 void Evolution::mutation() {
 	for (int i = POPL; i < POPL + OFFL; ++i) {
 		auto& chromosome = population->chromosomes[i];
-		for (auto& gene : chromosome.genes)
-			if (Random::rand<float>() <= mutationProb)
+		// for (auto& gene : chromosome.genes)
+			// if (Random::rand<float>() <= mutationProb)
+				// mutate(gene);
+		if (Random::rand<float>() <= mutationProb)
+			for (auto& gene : chromosome.genes)
 				mutate(gene);
-		// if (Random::rand<float>() <= mutationProb)
-			// mutate(chromosome);
 	}
 }
 
-// void Evolution::mutate(Chromosome& c) {
-// 	++mutationCount;
-// 	for (int i = 0; i < CHL; ++i)
-// 		c.genes[i] = Gene::getRandom();
-// }
-
 void Evolution::mutate(Gene& gene) {
 	++mutationCount;
-	gene = Gene::getRandom();
+	gene.dAngle = -gene.dAngle;
+	// gene = Gene::getRandom();
 }
 
 void Evolution::replacement() {
-	evaluateChildren();
-
-	static int idx[POPL + OFFL];
-	std::iota(idx, idx + POPL + OFFL, 0);
-	std::partial_sort(idx, idx + elite, idx + POPL + OFFL, [](const int& i, const int& j){
+	static int idx[POPL];
+	std::iota(idx, idx + POPL, 0);
+	std::partial_sort(idx, idx + elite, idx + POPL, [](const int& i, const int& j){
 		return objective[j] < objective[i];
 	});
 
 	for (int i = 0; i < elite - 1; ++i)
 		assert(objective[idx[i]] >= objective[idx[i + 1]]);
-	for (int i = elite; i < POPL + OFFL; ++i)
-		assert(objective[idx[elite - 1]] >= objective[idx[i]]);
 
 	for (int i = 0; i < elite; ++i)
 		nextPopulation->chromosomes[i] = population->chromosomes[idx[i]];
-	for (int i = elite; i < POPL; ++i) {
-		int randIdx = Random::rand(OFFL);
-		assert(0 <= randIdx && randIdx < OFFL);
-		nextPopulation->chromosomes[i] = population->chromosomes[POPL + randIdx];
-	}
-}
-
-void Evolution::evaluateChildren() {
-	for (int i = POPL; i < POPL + OFFL; ++i) {
-		Agent agent = currentAgent;
-		const auto& chromosome = population->chromosomes[i];
-
-		for (const auto& action : chromosome.genes) {
-			agent.apply(action);
-			if (!Map::isFlying(agent))
-				break;
-		}
-
-		objective[i] = Map::evaluate(agent);
-	}
+	for (int i = elite; i < POPL; ++i)
+		nextPopulation->chromosomes[i] = population->chromosomes[POPL + i];
 }
 
 #ifndef NDEBUG

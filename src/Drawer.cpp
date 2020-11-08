@@ -90,7 +90,7 @@ void Drawer::draw() {
 			window.draw(sealed.data(), 2 * iterationIdx, sf::Lines);
 			window.display();
 
-			usleep(10 * 1000);
+			usleep(50 * 1000);
 		}
 	}
 
