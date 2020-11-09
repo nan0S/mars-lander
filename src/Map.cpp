@@ -11,6 +11,8 @@ const std::string Map::mapNames[] = {
 	"initial_speed_wrong_side",
 	"deep_canyon",
 	"high_ground",
+	"cave_correct_side",
+	"cave_wrong_side",
 };
 
 const int Map::mapCount = sizeof(mapNames) / sizeof(mapNames[0]);
@@ -31,6 +33,7 @@ int Map::initialThrust;
 
 int Map::landingPointIdx = -1;
 std::vector<float> Map::landLengths;
+float Map::totalLandLength = 0.f;
 int Map::lastCollisionIdx;
 
 void Map::load() {
@@ -51,7 +54,6 @@ void Map::load() {
 	}
 
 	landLengths.reserve(pointCount - 1);
-	float totalLandLength = 0.f;
 	for (int i = 0; i < pointCount - 1; ++i) {
 		float dx = points[i + 1].x - points[i].x;
 		float dy = points[i + 1].y - points[i].y;
@@ -59,8 +61,6 @@ void Map::load() {
 		totalLandLength += d;
 		landLengths.emplace_back(d);
 	}
-	for (auto& length : landLengths)
-		length /= totalLandLength;
 
 	ifs >> landLeft >> landRight;
 	ifs >> landGround;
@@ -89,14 +89,18 @@ void Map::show() {
 		std::cout << "\t" << p << "\n";
 	std::cout << "\n";
 
-	std::cout << "\tLand relative length:\n";
+	std::cout << "\tLand relative length:\n\t";
 	for (const auto& length : landLengths)
 		std::cout << length << " ";
 	std::cout << "\n\n";
 
-	std::cout << "\tLand relative cummulative distance:\n";
+	std::cout << "\tLand relative cummulative distance (left point):\n\t";
 	for (int i = 0; i < pointCount - 1; ++i)
 		std::cout << walkDistance(i, points[i].x) << " ";
+	std::cout << "\n";
+	std::cout << "\tLand relative cummulative distance (right point):\n\t";
+	for (int i = 0; i < pointCount - 1; ++i)
+		std::cout << walkDistance(i, points[i + 1].x) << " ";
 	std::cout << "\n\n";
 
 	std::cout << "\tLanding zone: " 
@@ -126,18 +130,14 @@ bool Map::isFlying(const Agent& agent) {
 ShipState Map::getShipState(const Agent& agent) {
 	const auto& p1 = agent.pos;
 	const auto& p2 = agent.lastPos;
-	lastCollisionIdx = -2;
+	lastCollisionIdx = NO_COLLISION;
 
 	for (int i = 0; i < landingPointIdx; ++i)
-		if (collide(p1, p2, points[i], points[i + 1])) {
-			lastCollisionIdx = i;
-			return ShipState::CrashedOutside;
-		}
+		if (collide(p1, p2, points[i], points[i + 1]))
+			return lastCollisionIdx = i, ShipState::CrashedOutside;
 	for (int i = landingPointIdx + 1; i < pointCount - 1; ++i)
-		if (collide(p1, p2, points[i], points[i + 1])) {
-			lastCollisionIdx = i;
-			return ShipState::CrashedOutside;
-		}
+		if (collide(p1, p2, points[i], points[i + 1]))
+			return lastCollisionIdx = i, ShipState::CrashedOutside;
 
 	if (collide(p1, p2, points[landingPointIdx], points[landingPointIdx + 1])) {
 		if (agent.angle == 0 && std::fabs(agent.vel.x) <= HSPEED_LIMIT && std::fabs(agent.vel.y) <= VSPEED_LIMIT)
@@ -145,14 +145,12 @@ ShipState Map::getShipState(const Agent& agent) {
 		return ShipState::CrashedInside;
 	}
 
-	if (agent.pos.x <= LEFT_BORDER || agent.pos.x >= RIGHT_BORDER) {
-		lastCollisionIdx = -1;
-		return ShipState::CrashedOutside;
-	}
-	if (agent.pos.y <= BOT_BORDER || agent.pos.y >= TOP_BORDER) {
-		lastCollisionIdx = -1;
-		return ShipState::CrashedOutside;
-	}
+	if (agent.pos.x <= LEFT_BORDER)
+		return lastCollisionIdx = LEFT_COLLISION, ShipState::CrashedOutside;
+	if (agent.pos.x >= RIGHT_BORDER)
+		return lastCollisionIdx = RIGHT_COLLISION, ShipState::CrashedOutside;
+	if (agent.pos.y <= BOT_BORDER || agent.pos.y >= TOP_BORDER)
+		return lastCollisionIdx = TOPBOT_COLLISION, ShipState::CrashedOutside;
 	
 	if (agent.fuel <= 0)
 		return ShipState::FuelLack;
@@ -164,15 +162,15 @@ float Map::evaluate(const Agent& agent) {
 	ShipState shipState = getShipState(agent);
 	switch (shipState) {
 		case ShipState::Landed:
-			return 110000.f + 0.1f * evaluateLanded(agent);
+			return evaluateLanded(agent);
 		case ShipState::CrashedInside:
-			return 0.5f + 0.2f * evaluateCrashedInside(agent);
+			return evaluateCrashedInside(agent);
 		case ShipState::CrashedOutside:
-			return 0.2f + 0.3f * evaluateCrashedOutside(agent);
+			return evaluateCrashedOutside(agent);
 		case ShipState::Flying:
-			return 0.2f + 0.5f * evaluateFlying(agent);
+			return evaluateFlying(agent);
 		case ShipState::FuelLack:
-			return 0.0f + 0.3f * evaluateFuelLack(agent);
+			return evaluateFuelLack(agent);
 	}
 	assert(false);
 }
@@ -204,7 +202,7 @@ float Map::evaluateFlying(const Agent& agent) {
 
 	assert(collisionIdx != -1);
 	float distance = walkDistance(collisionIdx, p1.x);
-	return 1.f - distance;
+	return 10 * distance;
 }
 
 float Map::walkDistance(int landIdx, float xMark) {
@@ -231,95 +229,69 @@ float Map::walkDistance(int landIdx, float xMark) {
 	else
 		distance += (std::max(scale, 1.f - scale) - 0.5f) * landLengths[landIdx];
 
-	assert(0.f <= distance && distance <= 1.f);
-
 	return distance;
 }
 
 float Map::evaluateCrashedOutside(const Agent& agent) {
-	assert(lastCollisionIdx != -2);
-	if (lastCollisionIdx == -1)
-		return 0.0001f;
+	assert(lastCollisionIdx != NO_COLLISION);
 
+	float xMark = -1.f;
+	switch (lastCollisionIdx) {
+		case LEFT_COLLISION:
+			xMark = points[0].x;
+			lastCollisionIdx = 0;
+			break;
+		case RIGHT_COLLISION:
+			xMark = points.back().x;
+			lastCollisionIdx = pointCount - 2;
+			break;
+		case TOPBOT_COLLISION:
+			return evaluateFlying(agent);
+		default:
+			assert(collide(agent.pos, agent.lastPos, points[lastCollisionIdx], points[lastCollisionIdx + 1]));
+			xMark = (agent.pos.x + agent.lastPos.x) / 2;
+	}
+
+	assert(xMark != 1.f);
 	assert(lastCollisionIdx < pointCount - 1);
 
 	const auto& p1 = points[lastCollisionIdx];
 	const auto& p2 = points[lastCollisionIdx + 1];
-	float xMark = agent.pos.x;
 
-	assert(collide(agent.pos, agent.lastPos, p1, p2));
-
-	#ifndef NDEBUG
-	if (Options::superVerbose)
-		std::cout << "xMark:\t" << xMark << ", p1.x:\t" << p1.x << ", p2.x:\t" << p2.x << std::endl;
-	#endif
-
-	assert(std::min(p1.x, p2.x) - 300.f <= xMark && xMark <= std::max(p1.x, p2.x) + 300.f);
+	assert(std::min(p1.x, p2.x) - 100.f <= xMark && xMark <= std::max(p1.x, p2.x) + 100.f);
 	xMark = clamp<float>(xMark, std::min(p1.x, p2.x), std::max(p1.x, p2.x));
 
-	float distance = walkDistance(lastCollisionIdx, xMark);
-	assert(0.f <= distance && distance <= 1.f);
-
-	#ifndef NDEBUG
-	if (Options::superVerbose)
-		std::cout << "CrashedOutside: " << distance << std::endl;
-	#endif
-
-	return 1.f - distance;
+	float distance = walkDistance(lastCollisionIdx, xMark) * 10;
+	float hSpeedAboveLimit = std::pow(std::max(0.f, std::fabs(agent.vel.x) - HSPEED_LIMIT), 1.5f);
+	float vSpeedAboveLimit = std::pow(std::max(0.f, std::fabs(agent.vel.y) - VSPEED_LIMIT), 1.5f);
+	return distance + hSpeedAboveLimit + vSpeedAboveLimit;
 }
 
 float Map::evaluateCrashedInside(const Agent& agent) {
-	static constexpr float ABOVE_LIMIT_SCALE = 0.25f;
-	static_assert(3.f * ABOVE_LIMIT_SCALE <= 1.f, "ABOVE_LIMIT_SCALE has to be less that one third!");
-	static constexpr float REST_SCALE = 1.f - ABOVE_LIMIT_SCALE * 3.f;
-
+	static constexpr int ABOVE_LIMIT_PENALTY = 300;
 	float eval = 0.f;
-	float hSpeedAboveLimit = 0.f;
-	float vSpeedAboveLimit = 0.f;
-	float angleAboveLimit = 0.f;
 
-	if (std::fabs(agent.vel.x) > HSPEED_LIMIT) {
-		eval += ABOVE_LIMIT_SCALE;
-		hSpeedAboveLimit = (std::min(std::fabs(agent.vel.x), MAX_HSPEED) - HSPEED_LIMIT) / (MAX_HSPEED - HSPEED_LIMIT);
-		// eval += ABOVE_LIMIT_SCALE + std::min(std::fabs(agent.vel.x) - HSPEED_LIMIT, MAX_HSPEED) / MAX_HSPEED * REST_SCALE / 3.f;
-	}
-	if (std::fabs(agent.vel.y) > VSPEED_LIMIT) {
-		eval += ABOVE_LIMIT_SCALE;
-		vSpeedAboveLimit = (std::min(std::fabs(agent.vel.y), MAX_VSPEED) - VSPEED_LIMIT) / (MAX_VSPEED - VSPEED_LIMIT);
-		// eval += ABOVE_LIMIT_SCALE + std::min(std::fabs(agent.vel.y) - VSPEED_LIMIT, MAX_VSPEED) / MAX_VSPEED * REST_SCALE / 3.f;
-	}
-	if (agent.angle != 0) {
-		eval += ABOVE_LIMIT_SCALE;
-		angleAboveLimit = float(std::abs(agent.angle)) / MAX_ANGLE;
-		// eval += ABOVE_LIMIT_SCALE + float(std::abs(agent.angle)) / MAX_ANGLE * REST_SCALE / 3.f;
-	}
+	if (std::fabs(agent.vel.x) > HSPEED_LIMIT)
+		eval += ABOVE_LIMIT_PENALTY + std::pow(std::fabs(agent.vel.x) - HSPEED_LIMIT, 2.f);
+	if (std::fabs(agent.vel.y) > VSPEED_LIMIT)
+		eval += ABOVE_LIMIT_PENALTY + std::pow(std::fabs(agent.vel.y) - VSPEED_LIMIT, 2.f);
+	if (agent.angle != 0)
+		eval += ABOVE_LIMIT_PENALTY + std::pow(std::abs(agent.angle), 2.f);;
 
-	if (eval > 0.f)
-		eval = ABOVE_LIMIT_SCALE * 3.f;
-
-	eval += (hSpeedAboveLimit + vSpeedAboveLimit + angleAboveLimit) * REST_SCALE / 3.f;
-	assert(0.f <= eval && eval <= 1.000001f);
-
-	#ifndef NDEBUG
-	if (Options::superVerbose) {
-		std::cout << "eval:\t" << eval << ", hSpeedAboveLimit:\t" << hSpeedAboveLimit << ", vSpeedAboveLimit:\t" << vSpeedAboveLimit << ", angleAboveLimit:\t" << angleAboveLimit << std::endl;
-		std::cout << "CrashedInside: " << eval << std::endl;
-	}
-	#endif
-
-	return 1.f - eval;
+	return eval;
 }
 
 float Map::evaluateLanded(const Agent& agent) {
 	// assert(false);
 	assert(agent.fuel > 0);
-	float eval = float(agent.fuel) / initialFuel;
-	assert(0.f <= eval && eval <= 1.f);
-	return eval;
+	assert(agent.fuel <= initialFuel);
+	return 0.f;
+	// return initialFuel - agent.fuel;	
 }
 
 float Map::evaluateFuelLack(const Agent& agent) {
-	return 0.f;	
+	assert(false);
+	return initialFuel + 10000;
 }
 
 #ifndef NDEBUG

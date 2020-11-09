@@ -55,14 +55,16 @@ private:
 
 	static int landingPointIdx;
 	static std::vector<float> landLengths;
+	static float totalLandLength;
 	static int lastCollisionIdx;
+
+	static constexpr int LEFT_COLLISION = -1;
+	static constexpr int RIGHT_COLLISION = -2;
+	static constexpr int TOPBOT_COLLISION = -3;
+	static constexpr int NO_COLLISION = -4;
 
 	static constexpr int VSPEED_LIMIT = 40;
 	static constexpr int HSPEED_LIMIT = 20;
-	static constexpr float VSPEED_ABOVE_LIMIT_SCALE = 4.f;
-	static constexpr float HSPEED_ABOVE_LIMIT_SCALE = 2.f;
-	static constexpr float MAX_HSPEED = HSPEED_LIMIT * HSPEED_ABOVE_LIMIT_SCALE;
-	static constexpr float MAX_VSPEED = VSPEED_LIMIT * VSPEED_ABOVE_LIMIT_SCALE;
 	static constexpr int MAX_ANGLE = 90;
 
 	static float evaluateFlying(const Agent& agent);

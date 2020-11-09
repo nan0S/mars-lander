@@ -93,8 +93,8 @@ void Evolution::printConfig() {
 void Evolution::evolution() {
 	Timer timer(evolutionTimeLimit);
 
-	for (int generation = 0; generation < 50; ++generation) {
-	// for (int generation = 0; timer.isTimeLeft(); ++generation) {
+	// for (int generation = 0; generation < 50; ++generation) {
+	for (int generation = 0; timer.isTimeLeft(); ++generation) {
 		mutationCount = 0;
 		selection();
 		crossover();
@@ -133,7 +133,8 @@ void Evolution::selection() {
 }
 
 void Evolution::evaluatePopulation() {
-	float sum = 0.f;
+	float maxObjective = 0.f;
+
 	for (int i = 0; i < POPL; ++i) {
 		Agent agent = currentAgent;
 		const auto& chromosome = population->chromosomes[i];
@@ -144,12 +145,19 @@ void Evolution::evaluatePopulation() {
 				break;
 		}
 
-		sum += (objective[i] = Map::evaluate(agent));
+		maxObjective = std::max(maxObjective, objective[i] = Map::evaluate(agent));
 	}
 
-	assert(sum != 0.f);
+	float sum = 0.f;
 	for (int i = 0; i < POPL; ++i)
-		fitness[i] = objective[i] / sum;
+		sum += (objective[i] = maxObjective - objective[i]);
+
+	if (sum == 0.f)
+		for (int i = 0; i < POPL; ++i)
+			fitness[i] = 1.f / POPL;
+	else
+		for (int i = 0; i < POPL; ++i)
+			fitness[i] = objective[i] / sum;	
 }
 
 int Evolution::selectParent(float x) {
@@ -218,19 +226,19 @@ static void shuffleCross(const Chromosome& p1, const Chromosome& p2,
 void Evolution::cross(const Chromosome& p1, const Chromosome& p2,
 	Chromosome& c1, Chromosome& c2) {
 	// continuousCross(p1, p2, c1, c2);
-	// shuffleCross(p1, p2, c1, c2);
-	uniformCross(p1, p2, c1, c2);
+	shuffleCross(p1, p2, c1, c2);
+	// uniformCross(p1, p2, c1, c2);
 }
 
 void Evolution::mutation() {
 	for (int i = POPL; i < POPL + OFFL; ++i) {
 		auto& chromosome = population->chromosomes[i];
-		// for (auto& gene : chromosome.genes)
-			// if (Random::rand<float>() <= mutationProb)
-				// mutate(gene);
-		if (Random::rand<float>() <= mutationProb)
-			for (auto& gene : chromosome.genes)
+		for (auto& gene : chromosome.genes)
+			if (Random::rand<float>() <= mutationProb)
 				mutate(gene);
+		// if (Random::rand<float>() <= mutationProb)
+			// for (auto& gene : chromosome.genes)
+				// mutate(gene);
 	}
 }
 
