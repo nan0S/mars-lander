@@ -39,4 +39,4 @@ benchmark: $(OBJS) simulator.o
 clean:
 	rm -f *.o
 distclean: clean
-	rm -f mars-lander
+	rm -f mars-lander benchmark

@@ -37,6 +37,9 @@ float Map::totalLandLength = 0.f;
 int Map::lastCollisionIdx;
 
 void Map::load() {
+	std::istream* ins;
+
+	#ifdef LOCAL
 	int mapNumber = Options::mapNumber;
 	assert(1 <= mapNumber && mapNumber <= mapCount);
 
@@ -44,14 +47,19 @@ void Map::load() {
 	std::string path = "tests/" + currentMapName + ".txt";
 	std::ifstream ifs(path);
 	assert(ifs.is_open());
+	ins = &ifs;
+
+	#else
+		ins = &std::cin;
+	#endif
 
     int lastX = -1, lastY = -1;
-    ifs >> pointCount;
+    *ins >> pointCount;
     points.reserve(pointCount);
 
     for (int i = 0; i < pointCount; i++) {
         int x, y;
-        ifs >> x >> y;
+        *ins >> x >> y;
         points.emplace_back(x, y);
 
         if (y == lastY) {
@@ -59,8 +67,6 @@ void Map::load() {
             landRight = x;
             landGround = y;
         }
-
-        std::cout << x << " " << y << std::endl;
 
         lastX = x;
         lastY = y;
@@ -75,9 +81,9 @@ void Map::load() {
 		landLengths.emplace_back(d);
 	}
 
-	ifs >> initialPos.x >> initialPos.y;
-	ifs >> initialVel.x >> initialVel.y;
-	ifs >> initialFuel >> initialAngle >> initialThrust;
+	*ins >> initialPos.x >> initialPos.y;
+	*ins >> initialVel.x >> initialVel.y;
+	*ins >> initialFuel >> initialAngle >> initialThrust;
 
 	landMiddle = (landLeft + landRight) / 2;
 

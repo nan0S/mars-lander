@@ -1,6 +1,7 @@
 #include "Evolution.hpp"
 #include "Map.hpp"
 #include "Options.hpp"
+
 #ifdef DEBUG
 #include "Drawer.hpp"
 #endif
@@ -46,6 +47,8 @@ void Evolution::start() {
 
 		#ifdef LOCAL
 		++loops;
+		#else
+		std::cout << currentAgent.angle << " " << currentAgent.thrust << std::endl;
 		#endif
 	}	
 
