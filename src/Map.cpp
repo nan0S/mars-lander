@@ -212,7 +212,7 @@ float Map::evaluateFlying(const Agent& agent) {
 			float nom = q2.y * (p1.x - q1.x) + q1.y * (q2.x - p1.x);
 			float den = (q2.x - q1.x);
 			float y = nom / den;
-			assert(y >= std::min(q1.y, q2.y) && y <= std::max(q1.y, q2.y));
+			assert(y >= std::min(q1.y, q2.y)*0.99f && y <= std::max(q1.y, q2.y)*1.01f);
 
 			if (y <= p1.y && y > maxY) {
 				maxY = y;
@@ -284,18 +284,18 @@ float Map::evaluateCrashedOutside(const Agent& agent) {
 
 	float distance = walkDistance(lastCollisionIdx, xMark) * 10;
 	float hSpeedAboveLimit = std::pow(std::max(0.f, std::fabs(agent.vel.x) - HSPEED_LIMIT), 1.5f);
-	float vSpeedAboveLimit = std::pow(std::max(0.f, std::fabs(agent.vel.y) - VSPEED_LIMIT), 1.5f);
+	float vSpeedAboveLimit = std::pow(std::max(0.f, std::fabs(agent.vel.y) - VSPEED_LIMIT), 3.f);
 	return distance + hSpeedAboveLimit + vSpeedAboveLimit;
 }
 
 float Map::evaluateCrashedInside(const Agent& agent) {
-	static constexpr int ABOVE_LIMIT_PENALTY = 300;
+	static constexpr int ABOVE_LIMIT_PENALTY = 1000;
 	float eval = 0.f;
 
 	if (std::fabs(agent.vel.x) > HSPEED_LIMIT)
 		eval += ABOVE_LIMIT_PENALTY + std::pow(std::fabs(agent.vel.x) - HSPEED_LIMIT, 2.f);
 	if (std::fabs(agent.vel.y) > VSPEED_LIMIT)
-		eval += ABOVE_LIMIT_PENALTY + std::pow(std::fabs(agent.vel.y) - VSPEED_LIMIT, 2.f);
+		eval += 2 * ABOVE_LIMIT_PENALTY + std::pow(std::fabs(agent.vel.y) - VSPEED_LIMIT, 3.f);
 	if (agent.angle != 0)
 		eval += ABOVE_LIMIT_PENALTY + std::pow(std::abs(agent.angle), 2.f);;
 

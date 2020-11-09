@@ -5,7 +5,7 @@
 #include <iomanip>
 
 int Options::mapNumber = 1;
-float Options::evolutionTimeLimit = 100;
+float Options::evolutionTimeLimit = 40;
 bool Options::verbose = false;
 bool Options::superVerbose = false;
 

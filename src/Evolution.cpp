@@ -58,6 +58,9 @@ void Evolution::start() {
 		std::cout << "Landed!\n";
 	else
 		std::cout << "Not landed!\n";
+	#else
+	for (int i = 0; i < 10; ++i)
+		std::cout << "0 0" << std::endl;
 	#endif
 
 	#ifdef DEBUG
