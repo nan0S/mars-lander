@@ -71,7 +71,7 @@ void Map::load() {
 	landMiddle = (landLeft + landRight) / 2;
 
 	for (int i = 0; i < pointCount; ++i)
-		if (points[i].x == landLeft) {
+		if (points[i].x == landLeft && points[i].y == landGround) {
 			landingPointIdx = i;
 			break;
 		}
