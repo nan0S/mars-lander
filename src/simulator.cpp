@@ -52,7 +52,7 @@ public:
 
 		while (timer.isTimeLeft()) {
 			Map::init(agent);
-			while (!Map::isCrashed(agent)) {
+			while (Map::isFlying(agent)) {
 				Action action = Action::getRandom();
 				agent.apply(action);
 				++stepsTotal;

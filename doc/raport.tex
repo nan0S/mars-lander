@@ -16,5 +16,9 @@
 
 	\maketitle
 	
+	\section{Random simulations}
+ 	I have implemented the forward model that allowed me to simulate the course of the game for a given map, as stated in the exercise. I managed to get around $500k$ completely random simulations per second, simulated till the end of the run - if it comes to the random simulations, lander always crashed. It took around $37$ steps on average for the lander to crash, so my model did around $13k$ steps per second.
+ 	
+ 	Originally I have managed to do around $400k$ of random simulations per second, but I have decided to precompute and save in an array all values of $sin$ and $cos$ functions for all angles in range $[-90, 90]$. Because our angles are integers only, arrays are pretty small and using them increased the number of simulations by $25\%$.
 	
 \end{document}
