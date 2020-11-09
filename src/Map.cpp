@@ -45,13 +45,26 @@ void Map::load() {
 	std::ifstream ifs(path);
 	assert(ifs.is_open());
 
-	ifs >> pointCount;
-	points.reserve(pointCount);
-	for (int i = 0; i < pointCount; ++i) {
-		int x, y;
-		ifs >> x >> y;
-		points.emplace_back(x, y);
-	}
+    int lastX = -1, lastY = -1;
+    ifs >> pointCount;
+    points.reserve(pointCount);
+
+    for (int i = 0; i < pointCount; i++) {
+        int x, y;
+        ifs >> x >> y;
+        points.emplace_back(x, y);
+
+        if (y == lastY) {
+            landLeft = lastX;
+            landRight = x;
+            landGround = y;
+        }
+
+        std::cout << x << " " << y << std::endl;
+
+        lastX = x;
+        lastY = y;
+    }
 
 	landLengths.reserve(pointCount - 1);
 	for (int i = 0; i < pointCount - 1; ++i) {
@@ -62,8 +75,6 @@ void Map::load() {
 		landLengths.emplace_back(d);
 	}
 
-	ifs >> landLeft >> landRight;
-	ifs >> landGround;
 	ifs >> initialPos.x >> initialPos.y;
 	ifs >> initialVel.x >> initialVel.y;
 	ifs >> initialFuel >> initialAngle >> initialThrust;
@@ -77,10 +88,13 @@ void Map::load() {
 		}
 	assert(landingPointIdx != -1);
 
+	#ifdef DEBUG
 	if (Options::verbose)
 		show();
+	#endif
 }
 
+#ifdef DEBUG
 void Map::show() {
 	std::cout << "\nMap configuration:\n";
 	std::cout << "\tMap name: " << currentMapName << "\n";
@@ -98,6 +112,7 @@ void Map::show() {
 	for (int i = 0; i < pointCount - 1; ++i)
 		std::cout << walkDistance(i, points[i].x) << " ";
 	std::cout << "\n";
+
 	std::cout << "\tLand relative cummulative distance (right point):\n\t";
 	for (int i = 0; i < pointCount - 1; ++i)
 		std::cout << walkDistance(i, points[i + 1].x) << " ";
@@ -111,8 +126,8 @@ void Map::show() {
 	std::cout << "\tInitial fuel: " << initialFuel << "\n";
 	std::cout << "\tInitial angle: " << initialAngle << "\n";
 	std::cout << "\tInitial thrust: " << initialThrust << "\n";
-
 }
+#endif
 
 void Map::init(Agent& agent) {
 	agent.pos = initialPos;
@@ -286,7 +301,6 @@ float Map::evaluateLanded(const Agent& agent) {
 	assert(agent.fuel > 0);
 	assert(agent.fuel <= initialFuel);
 	return 0.f;
-	// return initialFuel - agent.fuel;	
 }
 
 float Map::evaluateFuelLack(const Agent& agent) {
@@ -294,7 +308,7 @@ float Map::evaluateFuelLack(const Agent& agent) {
 	return initialFuel + 10000;
 }
 
-#ifndef NDEBUG
+#ifdef DEBUG
 std::ostream& operator<<(std::ostream& out, const ShipState& shipState) {
 	switch (shipState) {
 		case ShipState::Landed:

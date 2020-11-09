@@ -3,44 +3,20 @@
 DEPS=(
 	Common.hpp
 	Common.cpp
-	Action.hpp
-	Action.cpp
 	Agent.hpp
 	Agent.cpp
-	State.hpp
-	State.cpp
-	StatSystem.hpp
-	StatSystem.cpp
-	RandomAgent.hpp
-	RandomAgent.cpp
-	FlatMCTSAgent.hpp
-	FlatMCTSAgent.cpp
-	MCTSAgentBase.hpp
-	MCTSAgentBase.cpp
-	MCTSAgent.hpp
-	MCTSAgent.cpp
-	MCTSAgentWithMAST.hpp
-	MCTSAgentWithMAST.cpp
-	MCTSAgentWithRAVE.hpp
-	MCTSAgentWithRAVE.cpp
-	MCTSAgentWithMASTAndRAVE.hpp
-	MCTSAgentWithMASTAndRAVE.cpp
-	TicTacToe.hpp
-	TicTacToe.cpp
-	UltimateTicTacToe.hpp
-	UltimateTicTacToe.cpp
-	TicTacToeRealAgent.hpp
-	TicTacToeRealAgent.cpp
-	GameRunner.hpp
-	CGAgent.hpp
-	CGAgent.cpp
-	CGRunner.hpp
+	Options.hpp
+	Options.cpp
+	Map.hpp
+	Map.cpp
+	Evolution.hpp
+	Evolution.cpp
 	main.cpp
 )
 
 output="CGSolver"
 cat "${DEPS[@]}" > $output.cpp
 sed -i -e '/HPP/d' -e '/include "/d' $output.cpp
-make $output
+g++ $output.cpp -o $output -std=c++17 -Wall -Wextra -Wreorder -Ofast -O3 -flto -march=native -s
 rm $output
 clipcp $output.cpp

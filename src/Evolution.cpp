@@ -1,7 +1,7 @@
 #include "Evolution.hpp"
 #include "Map.hpp"
 #include "Options.hpp"
-#ifndef NDEBUG
+#ifdef DEBUG
 #include "Drawer.hpp"
 #endif
 
@@ -28,20 +28,36 @@ int Evolution::parentIdx[OFFL];
 void Evolution::start() {
 	init();
 	
+	#ifdef LOCAL
+	int loops = 0;
+	#endif
+
 	for (int algorithmIteration = 0; Map::isFlying(currentAgent); ++algorithmIteration) {
 		evolution();
 		auto action = chooseAction();
 		currentAgent.apply(action);
 
-		#ifndef NDEBUG
+		#ifdef DEBUG
 		if (Options::verbose) {
 			Drawer::seal(currentAgent);
 			std::cout << "Iteration: " << algorithmIteration << std::endl;
 		}
 		#endif
+
+		#ifdef LOCAL
+		++loops;
+		#endif
 	}	
 
-	#ifndef NDEBUG
+	#ifdef LOCAL
+	std::cout << loops << "\n";
+	if (Map::getShipState(currentAgent) == ShipState::Landed)
+		std::cout << "Landed!\n";
+	else
+		std::cout << "Not landed!\n";
+	#endif
+
+	#ifdef DEBUG
 	if (Options::verbose) {
 		std::cout << "\nFinal velocity: " << currentAgent.vel << "\n";
 		std::cout << "Final angle: " << currentAgent.angle << "\n";
@@ -63,7 +79,7 @@ void Evolution::init() {
 
 	assert(0 <= elite && elite <= POPL);
 
-	#ifndef NDEBUG
+	#ifdef DEBUG
 	if (Options::verbose)
 		printConfig();
 	#endif
@@ -80,7 +96,7 @@ void Evolution::initPopulation() {
 	}
 }
 
-#ifndef NDEBUG
+#ifdef DEBUG
 void Evolution::printConfig() {
 	std::cout << "\nEvolution algorithm configuration:\n";
 	std::cout << "\tAlgorithm: RHEA\n";
@@ -103,7 +119,7 @@ void Evolution::evolution() {
 
 		std::swap(population, nextPopulation);
 
-		#ifndef NDEBUG
+		#ifdef DEBUG
 		if (Options::verbose) {
 			recordGeneration();
 			printGenerationStats(generation);
@@ -115,7 +131,6 @@ void Evolution::evolution() {
 void Evolution::selection() {
 	evaluatePopulation();
 
-	// roulette selection
 	for (int i = 0; i < POPL - 1; ++i)
 		fitness[i + 1] += fitness[i];
 
@@ -236,15 +251,11 @@ void Evolution::mutation() {
 		for (auto& gene : chromosome.genes)
 			if (Random::rand<float>() <= mutationProb)
 				mutate(gene);
-		// if (Random::rand<float>() <= mutationProb)
-			// for (auto& gene : chromosome.genes)
-				// mutate(gene);
 	}
 }
 
 void Evolution::mutate(Gene& gene) {
 	++mutationCount;
-	// gene.dAngle = -gene.dAngle;
 	gene = Gene::getRandom();
 }
 
@@ -264,7 +275,7 @@ void Evolution::replacement() {
 		nextPopulation->chromosomes[i] = population->chromosomes[POPL + i];
 }
 
-#ifndef NDEBUG
+#ifdef DEBUG
 void Evolution::printGenerationStats(int generation) {
 	evaluatePopulation();
 	std::cout << "\tGeneration: " << generation + 1 << "\n";

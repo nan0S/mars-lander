@@ -4,7 +4,9 @@
 
 #include "Options.hpp"
 #include "Map.hpp"
+#ifdef DEBUG
 #include "Drawer.hpp"
+#endif
 
 int timeLimit = 100;
 
@@ -68,13 +70,13 @@ int main(int argc, char* argv[]) {
 	parseArgs(argc, argv);
 	Map::load();
 
-	#ifndef NDEBUG
+	#ifdef DEBUG
 	Drawer::init();
 	#endif
 
 	Simulator::simulate();
 
-	#ifndef NDEBUG
+	#ifdef DEBUG
 	Drawer::draw();
 	#endif
 

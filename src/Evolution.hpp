@@ -10,7 +10,7 @@
 #define OFFL POPL
 #endif
 #ifndef CHL
-#define CHL 10
+#define CHL 100
 #endif
 
 static_assert(OFFL % 2 == 0, "Offspring size must be divisible by 2!");
@@ -30,7 +30,7 @@ public:
 private:
 	static void init();
 	static void initPopulation();
-	#ifndef NDEBUG
+	#ifdef DEBUG
 	static void printConfig();
 	#endif
 	static void evolution();
@@ -43,7 +43,7 @@ private:
 	static void mutation();
 	static void mutate(Gene& gene);
 	static void replacement();
-	#ifndef NDEBUG
+	#ifdef DEBUG
 	static void printGenerationStats(int generation);
 	static void recordGeneration();
 	#endif

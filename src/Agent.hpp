@@ -14,13 +14,11 @@ struct Action {
 	static constexpr int MAX_DTHRUST = 1;
 
 	static Action getRandom();
-	friend std::ostream& operator<<(std::ostream& out, const Action& action);
 };
 
 class Agent {
 public:
 	void apply(const Action& action);
-	friend std::ostream& operator<<(std::ostream& out, const Agent& agent);
 
 public:
 	Vector pos;

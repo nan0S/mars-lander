@@ -9,8 +9,10 @@ namespace Options {
 	extern float mutationProb;
 	extern float eliteFactor;
 
+	#ifdef LOCAL
 	void configure(int argc, char* argv[]);
-	#ifndef NDEBUG
+	#endif
+	#ifdef DEBUG
 	void show();
 	#endif
 }

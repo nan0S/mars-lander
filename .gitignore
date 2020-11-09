@@ -1,2 +1,5 @@
 *.o
 mars-lander
+benchmark
+CGSolver
+CGSolver.cpp

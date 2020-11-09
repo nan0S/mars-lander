@@ -15,7 +15,7 @@ enum class ShipState {
 	Flying
 };
 
-#ifndef NDEBUG
+#ifdef DEBUG
 std::ostream& operator<<(std::ostream& out, const ShipState& shipState);
 #endif
 
@@ -28,7 +28,9 @@ public:
 	static float evaluate(const Agent& agent);
 
 private:
+	#ifdef DEBUG
 	static void show();
+	#endif
 
 public:
 	static int pointCount;

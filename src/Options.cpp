@@ -12,7 +12,9 @@ bool Options::superVerbose = false;
 float Options::mutationProb = 0.05f;
 float Options::eliteFactor = 0.2f;
 
+#ifdef LOCAL
 void Options::configure(int argc, char* argv[]) {
+	std::ios_base::sync_with_stdio(false);
 	std::cout << std::fixed << std::setprecision(5);
 
 	const char usagestr[] = 
@@ -65,13 +67,14 @@ void Options::configure(int argc, char* argv[]) {
 				exit(EXIT_SUCCESS);
 		}
 
-	#ifndef NDEBUG
+	#ifdef DEBUG
 	if (verbose)
 		show();
 	#endif
 }
+#endif
 
-#ifndef NDEBUG
+#ifdef DEBUG
 void Options::show() {
 	std::cout << "\nOptions configuration:\n";
 	std::cout << "\tmapNumber = " << mapNumber << "\n";
