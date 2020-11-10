@@ -49,6 +49,9 @@ void Evolution::start() {
 		++loops;
 		#else
 		std::cout << currentAgent.angle << " " << currentAgent.thrust << std::endl;
+		std::cin >> currentAgent.pos.x >> currentAgent.pos.y;
+		std::cin >> currentAgent.vel.x >> currentAgent.vel.y;
+		std::cin >> currentAgent.fuel >> currentAgent.angle >> currentAgent.thrust;
 		#endif
 	}	
 
@@ -114,7 +117,7 @@ void Evolution::printConfig() {
 
 void Evolution::evolution() {
 	Timer timer(evolutionTimeLimit);
-
+	
 	// for (int generation = 0; generation < 50; ++generation) {
 	for (int generation = 0; timer.isTimeLeft(); ++generation) {
 		mutationCount = 0;

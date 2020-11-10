@@ -223,7 +223,7 @@ float Map::evaluateFlying(const Agent& agent) {
 
 	assert(collisionIdx != -1);
 	float distance = walkDistance(collisionIdx, p1.x);
-	return 10 * distance;
+	return 10 * distance +  5 * (initialFuel - agent.fuel);
 }
 
 float Map::walkDistance(int landIdx, float xMark) {
@@ -283,9 +283,9 @@ float Map::evaluateCrashedOutside(const Agent& agent) {
 	xMark = clamp<float>(xMark, std::min(p1.x, p2.x), std::max(p1.x, p2.x));
 
 	float distance = walkDistance(lastCollisionIdx, xMark) * 10;
-	float hSpeedAboveLimit = std::pow(std::max(0.f, std::fabs(agent.vel.x) - HSPEED_LIMIT), 1.5f);
-	float vSpeedAboveLimit = std::pow(std::max(0.f, std::fabs(agent.vel.y) - VSPEED_LIMIT), 3.f);
-	return distance + hSpeedAboveLimit + vSpeedAboveLimit;
+	float hSpeedAboveLimit = std::pow(std::max(0.f, std::fabs(agent.vel.x) - HSPEED_LIMIT), 2.5f);
+	float vSpeedAboveLimit = std::pow(std::max(0.f, std::fabs(agent.vel.y) - VSPEED_LIMIT / 2), 3.f);
+	return distance + hSpeedAboveLimit + vSpeedAboveLimit + 5 * (initialFuel - agent.fuel);
 }
 
 float Map::evaluateCrashedInside(const Agent& agent) {
@@ -293,20 +293,20 @@ float Map::evaluateCrashedInside(const Agent& agent) {
 	float eval = 0.f;
 
 	if (std::fabs(agent.vel.x) > HSPEED_LIMIT)
-		eval += ABOVE_LIMIT_PENALTY + std::pow(std::fabs(agent.vel.x) - HSPEED_LIMIT, 2.f);
+		eval += ABOVE_LIMIT_PENALTY + std::pow(std::fabs(agent.vel.x) - HSPEED_LIMIT / 1.5f, 2.5f);
 	if (std::fabs(agent.vel.y) > VSPEED_LIMIT)
-		eval += 2 * ABOVE_LIMIT_PENALTY + std::pow(std::fabs(agent.vel.y) - VSPEED_LIMIT, 3.f);
+		eval += 2 * ABOVE_LIMIT_PENALTY + std::pow(std::fabs(agent.vel.y) - VSPEED_LIMIT / 2, 3.f);
 	if (agent.angle != 0)
 		eval += ABOVE_LIMIT_PENALTY + std::pow(std::abs(agent.angle), 2.f);;
 
-	return eval;
+	return eval + 5 * (initialFuel - agent.fuel);
 }
 
 float Map::evaluateLanded(const Agent& agent) {
 	// assert(false);
 	assert(agent.fuel > 0);
 	assert(agent.fuel <= initialFuel);
-	return 0.f;
+	return 5 * (initialFuel - agent.fuel);
 }
 
 float Map::evaluateFuelLack(const Agent& agent) {
