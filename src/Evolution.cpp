@@ -35,6 +35,7 @@ void Evolution::start() {
 
 	for (int algorithmIteration = 0; Map::isFlying(currentAgent); ++algorithmIteration) {
 		evolution();
+
 		auto action = chooseAction();
 		currentAgent.apply(action);
 
@@ -312,6 +313,9 @@ void Evolution::recordGeneration() {
 
 Action Evolution::chooseAction() {
 	evaluatePopulation();
+
+	// std::cout << std::accumulate(objective, objective + POPL, 0.f) / POPL << ",";
+	// std::cout << *std::max_element(objective, objective + POPL) << std::endl;
 
 	int bestIndividual = std::max_element(fitness, fitness + POPL) - fitness;
 	const auto bestAction = population->chromosomes[bestIndividual].genes[0];

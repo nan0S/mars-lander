@@ -31,7 +31,7 @@
 	\caption{Proof of passing all the test cases and validators.}
  	\end{figure}
 	
-	When it comes to the evolutionary algorithm itself, I have tried a few different things. Firstly I have implemented RHEA algorithm with \textit{random gene mutation} and \textit{roulette wheel with elitism} selection. For crossover I have decided to try \textit{random weighted sum of two parents} as tried in the  Mars Lander blog.
+	When it comes to the evolutionary algorithm itself, I have tried a few different things. Firstly I have implemented RHEA algorithm with \textit{random gene mutation} and \textit{roulette wheel with elitism} selection. For crossover I have decided to try \textit{random weighted sum of two parents} as tried in the  Mars Lander blog. Initial population was completely random.
 	
 	\begin{itemize}
 		\item \textit{random gene mutation} - with small probability we choose a child and replace one of his genes with a random one
@@ -52,6 +52,12 @@
 	
 	\paragraph{Link to the example evolutionary run of algorithm: }
 	\href{https://gph.is/g/Z86B130}{EXAMPLE}
+	
+	\begin{figure}[h]
+ 	\centering
+	\includegraphics[scale=1.0]{plots/plot} 	
+	\caption{Average and maximum fitness over evolutionary run.}
+ 	\end{figure}
 	
 	\section{Fitness implementation}
 	Fitness function was the most important part of the algorithm. Proper definition was the thing that made the Mars lander to properly land. I have specified five states that we would want to evaluate individual in (lander after actions in chromosome are done):\\
@@ -75,6 +81,9 @@
 	\section{Final challenge}
 	I have already described what I have tried, what worked and what did not or what I took into the account when evaluating the individual. When it comes to the final parameters I chose:
 	\begin{enumerate}
+		\item[] \texttt{Population size}: $50$
+		\item[] \texttt{Chromosome length}: $100$
+		\item[] \texttt{Initial population}: \textit{random}
 		\item[] \texttt{Selection}: \textit{elitism + roulette wheel}
 		\item[] \texttt{Crossover}: \textit{uniform crossover}
 		\item[] \texttt{Mutation}: \textit{independent genes mutation}

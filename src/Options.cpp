@@ -9,7 +9,7 @@ float Options::evolutionTimeLimit = 100;
 bool Options::verbose = false;
 bool Options::superVerbose = false;
 
-float Options::mutationProb = 0.05f;
+float Options::mutationProb = 0.03f;
 float Options::eliteFactor = 0.2f;
 
 #ifdef LOCAL
