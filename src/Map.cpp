@@ -310,7 +310,7 @@ float Map::evaluateLanded(const Agent& agent) {
 }
 
 float Map::evaluateFuelLack(const Agent& agent) {
-	assert(false);
+	// assert(false);
 	return initialFuel + 10000;
 }
 
