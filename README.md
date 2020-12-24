@@ -10,3 +10,4 @@ Use `Makefile` provided in `src` directory to build `mars-lander` binary. To exe
 * Mars Lander Episode 3 - https://www.codingame.com/training/expert/mars-lander-episode-3
 
 ## Screenshots
+![](doc/gifs/giffed.gif)
